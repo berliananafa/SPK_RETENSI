@@ -1,0 +1,23 @@
+<IfModule mod_headers.c>
+  # Allow access to all assets
+  Header set Access-Control-Allow-Origin "*"
+  
+  # Set proper MIME types for fonts
+  AddType application/vnd.ms-fontobject .eot
+  AddType font/ttf .ttf
+  AddType font/otf .otf
+  AddType font/woff .woff
+  AddType font/woff2 .woff2
+</IfModule>
+
+# Enable CORS for font files
+<FilesMatch "\.(ttf|ttc|otf|eot|woff|woff2|svg|css|js)$">
+  <IfModule mod_headers.c>
+    Header set Access-Control-Allow-Origin "*"
+    Header set Access-Control-Allow-Methods "GET, POST, OPTIONS"
+    Header set Access-Control-Allow-Headers "Origin, X-Requested-With, Content-Type, Accept"
+  </IfModule>
+</FilesMatch>
+
+# Allow directory listing (optional, comment out if not needed)
+Options +Indexes

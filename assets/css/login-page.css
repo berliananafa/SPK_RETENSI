@@ -1,0 +1,139 @@
+.login-wrapper {
+	background: #f5f7fa;
+	min-height: 100vh;
+}
+
+.login-card {
+	background: white;
+	border-radius: 0.75rem;
+	box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+	overflow: hidden;
+	max-width: 900px;
+	margin: 0 auto;
+}
+
+.login-left {
+	background: linear-gradient(135deg, #0ea5e9 0%, #3b82f6 100%);
+	padding: 3rem 2rem;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	height: 500px;
+}
+
+.login-logo {
+	max-width: 250px;
+	height: auto;
+	margin-bottom: 2rem;
+	background: white;
+	padding: 1.5rem;
+	border-radius: 0.5rem;
+	box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+.login-left-content {
+	text-align: center;
+	color: white;
+}
+
+.login-left-content h3 {
+	font-weight: 700;
+	margin-bottom: 1rem;
+	font-size: 1.75rem;
+}
+
+.login-left-content p {
+	font-size: 1rem;
+	opacity: 0.95;
+	line-height: 1.6;
+}
+
+.login-right {
+    padding: 3rem 2.5rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    height: 500px;
+}
+
+.login-header {
+	margin-bottom: 2rem;
+}
+
+.login-header h5 {
+	font-size: 1.5rem;
+	font-weight: 700;
+	margin-bottom: 0.5rem;
+	color: #1f2937;
+}
+
+.login-header p {
+	color: #6b7280;
+	font-size: 0.9rem;
+}
+
+.form-control {
+	border: 1px solid #e5e7eb;
+	padding: 0.75rem 1rem;
+	font-size: 0.95rem;
+}
+
+.form-control:focus {
+	border-color: #3b82f6;
+	box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.form-label {
+	font-size: 0.875rem;
+	font-weight: 600;
+	color: #374151;
+	margin-bottom: 0.5rem;
+}
+
+.btn-login {
+	background: linear-gradient(135deg, #0ea5e9 0%, #3b82f6 100%);
+	border: none;
+	padding: 0.85rem;
+	font-weight: 600;
+	font-size: 1rem;
+	transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.btn-login:hover {
+	transform: translateY(-2px);
+	box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+}
+
+.btn-login:focus {
+	box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+}
+
+.login-footer {
+	text-align: center;
+	margin-top: 4rem;
+	padding-top: 1.5rem;
+	border-top: 1px solid #e9ecef;
+}
+
+.badge-primary-custom {
+	background: rgba(255, 255, 255, 0.2);
+	color: white;
+	padding: 0.5rem 1rem;
+	font-weight: 500;
+	font-size: 0.85rem;
+	border-radius: 2rem;
+	display: inline-block;
+	margin-top: 1rem;
+}
+
+/* Responsive */
+@media (max-width: 767px) {
+	.login-left {
+		display: none;
+	}
+
+	.login-right {
+		padding: 2rem 1.5rem;
+	}
+}
