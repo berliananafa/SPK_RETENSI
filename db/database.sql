@@ -176,7 +176,7 @@ CREATE TABLE `konversi` (
   `id_konversi` INT(11) NOT NULL AUTO_INCREMENT,
   `id_cs` INT(11) NOT NULL,
   `id_sub_kriteria` INT(11) NOT NULL,
-  `id_range` INT(11) NOT NULL,
+  `id_range` INT(11) NULL,
   `nilai_asli` DECIMAL(10,2) NOT NULL COMMENT 'Nilai asli sebelum konversi',
   `nilai_konversi` DECIMAL(5,2) NOT NULL COMMENT 'Nilai setelah konversi/gap',
   `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -184,10 +184,8 @@ CREATE TABLE `konversi` (
   PRIMARY KEY (`id_konversi`),
   KEY `fk_konversi_cs` (`id_cs`),
   KEY `fk_konversi_subkriteria` (`id_sub_kriteria`),
-  KEY `fk_konversi_range` (`id_range`),
   CONSTRAINT `fk_konversi_cs` FOREIGN KEY (`id_cs`) REFERENCES `customer_service` (`id_cs`) ON DELETE CASCADE ON UPDATE CASCADE,
   CONSTRAINT `fk_konversi_subkriteria` FOREIGN KEY (`id_sub_kriteria`) REFERENCES `sub_kriteria` (`id_sub_kriteria`) ON DELETE CASCADE ON UPDATE CASCADE,
-  CONSTRAINT `fk_konversi_range` FOREIGN KEY (`id_range`) REFERENCES `range` (`id_range`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- ============================================
@@ -198,11 +196,13 @@ CREATE TABLE `nilai` (
   `id_cs` INT(11) NOT NULL,
   `id_sub_kriteria` INT(11) NOT NULL,
   `nilai` DECIMAL(10,2) NOT NULL,
+  `periode` VARCHAR(20) NOT NULL COMMENT 'Format: YYYY-MM',  -- ADDED
   `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id_nilai`),
   KEY `fk_nilai_cs` (`id_cs`),
   KEY `fk_nilai_subkriteria` (`id_sub_kriteria`),
+  KEY `idx_periode` (`periode`),  -- ADDED
   CONSTRAINT `fk_nilai_cs` FOREIGN KEY (`id_cs`) REFERENCES `customer_service` (`id_cs`) ON DELETE CASCADE ON UPDATE CASCADE,
   CONSTRAINT `fk_nilai_subkriteria` FOREIGN KEY (`id_sub_kriteria`) REFERENCES `sub_kriteria` (`id_sub_kriteria`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
