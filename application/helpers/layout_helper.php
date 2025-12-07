@@ -135,3 +135,19 @@ if (!function_exists('esc')) {
         }
     }
 }
+
+if (!function_exists('add_css')) {
+    function add_css($css) {
+        $CI = &get_instance();
+        $existing = $CI->load->get_var('additional_css') ?? '';
+        $CI->load->vars(['additional_css' => $existing . $css]);
+    }
+}
+
+if (!function_exists('add_js')) {
+    function add_js($js) {
+        $CI = &get_instance();
+        $existing = $CI->load->get_var('additional_js') ?? '';
+        $CI->load->vars(['additional_js' => $existing . $js]);
+    }
+}

@@ -172,6 +172,7 @@ $route['admin/nilai/delete/(:num)'] = 'admin/NilaiController/delete/$1';
 $route['admin/ranking'] = 'admin/RankingController/index';
 $route['admin/ranking/process'] = 'admin/RankingController/process';
 $route['admin/ranking/export'] = 'admin/RankingController/export';
+$route['admin/ranking/detail'] = 'admin/RankingController/detail';
 $route['admin/ranking/download'] = 'admin/RankingController/download';
 
 $route['admin/laporan'] = 'admin/LaporanController/index';
