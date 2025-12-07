@@ -38,34 +38,26 @@ class DashboardController extends Admin_Controller
             'total_teams'        => $this->db->count_all('tim'),
         ];
 
-        // Get top 10 CS ranking data for chart
-        $data['top_cs'] = $this->db->select('cs.nama_cs, r.nilai_akhir, r.periode')
-            ->from('ranking r')
-            ->join('customer_service cs', 'cs.id_cs = r.id_cs')
-            ->order_by('r.nilai_akhir', 'DESC')
-            ->limit(10)
-            ->get()
-            ->result();
+        // Get current periode
+        $currentPeriode = $this->Ranking->getLatestPeriode();
+        $data['current_periode'] = $currentPeriode;
 
-        // Enable charts
-        enable_charts();
+        // Get top 10 CS ranking
+        if ($currentPeriode) {
+            $data['top_cs'] = $this->db
+                ->select('cs.nama_cs, cs.nik, r.nilai_akhir, r.peringkat, t.nama_tim')
+                ->from('ranking r')
+                ->join('customer_service cs', 'cs.id_cs = r.id_cs', 'left')
+                ->join('tim t', 'cs.id_tim = t.id_tim', 'left')
+                ->where('r.periode', $currentPeriode)
+                ->order_by('r.nilai_akhir', 'DESC')
+                ->limit(10)
+                ->get()
+                ->result();
+        } else {
+            $data['top_cs'] = [];
+        }
 
         render_layout('admin/dashboard/index', $data);
-    }
-
-    /**
-     * Halaman statistik untuk admin
-     */
-    public function statistics()
-    {
-        set_page_title('Statistik Sistem');
-        set_breadcrumb([
-            ['title' => 'Dashboard', 'url' => base_url('admin/dashboard')],
-            ['title' => 'Statistik']
-        ]);
-
-        enable_charts();
-        
-        render_layout('admin/dashboard/statistics');
     }
 }
