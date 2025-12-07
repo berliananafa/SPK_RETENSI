@@ -176,7 +176,7 @@ $route['admin/ranking/detail'] = 'admin/RankingController/detail';
 $route['admin/ranking/download'] = 'admin/RankingController/download';
 
 $route['admin/laporan'] = 'admin/LaporanController/index';
-$route['admin/laporan/export'] = 'admin/LaporanController/export';
+$route['admin/laporan/export'] = 'admin/LaporanController/export_excel';
 $route['admin/laporan/print'] = 'admin/LaporanController/print';
 
 // ============================================================================
