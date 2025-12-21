@@ -44,25 +44,12 @@
                                   placeholder="Keterangan singkat tentang sub kriteria ini"><?= set_value('keterangan') ?></textarea>
                     </div>
 
-                    <div class="row">
-                        <div class="col-md-6">
-                            <div class="form-group">
-                                <label for="bobot_sub">Bobot Sub <span class="text-danger">*</span></label>
-                                <input type="number" class="form-control" id="bobot_sub" name="bobot_sub" 
-                                       value="<?= set_value('bobot_sub') ?>" min="0" step="0.01" 
-                                       placeholder="25.00" required>
-                                <small class="form-text text-muted">Bobot numerik sub kriteria</small>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="form-group">
-                                <label for="target">Target <span class="text-danger">*</span></label>
-                                <input type="number" class="form-control" id="target" name="target" 
-                                       value="<?= set_value('target') ?>" min="0" step="0.01" 
-                                       placeholder="85.00" required>
-                                <small class="form-text text-muted">Nilai target/standar yang diharapkan</small>
-                            </div>
-                        </div>
+                    <div class="form-group">
+                        <label for="bobot_sub">Bobot (%) <span class="text-danger">*</span></label>
+                        <input type="number" class="form-control" id="bobot_sub" name="bobot_sub" 
+                               value="<?= set_value('bobot_sub') ?>" min="0" max="100" step="0.01" 
+                               placeholder="50.00" required>
+                        <small class="form-text text-muted">Persentase dari total 100% (bukan dari kriteria induk)</small>
                     </div>
 
                     <hr class="my-4">
@@ -93,14 +80,17 @@
                     <div class="col">
                         <h6 class="mb-1">Contoh Sub Kriteria</h6>
                         <div class="small text-muted">
-                            <strong>Kriteria: Produktivitas (C1)</strong>
-                            <ul class="mb-0 mt-2">
-                                <li>C1.1 - Sangat Tinggi (Nilai: 5)</li>
-                                <li>C1.2 - Tinggi (Nilai: 4)</li>
-                                <li>C1.3 - Sedang (Nilai: 3)</li>
-                                <li>C1.4 - Rendah (Nilai: 2)</li>
-                                <li>C1.5 - Sangat Rendah (Nilai: 1)</li>
+                            <strong>Kriteria: Performa (Core Factor - 90%)</strong>
+                            <ul class="mb-2 mt-2">
+                                <li>KPI (Key Performance Index) - Bobot: <strong>50%</strong></li>
+                                <li>Rasio Ketercapaian Target - Bobot: <strong>40%</strong></li>
                             </ul>
+                            <strong>Kriteria: Kedisiplinan (Secondary Factor - 10%)</strong>
+                            <ul class="mb-0 mt-2">
+                                <li>Absensi - Bobot: <strong>5%</strong></li>
+                                <li>Keterlambatan - Bobot: <strong>5%</strong></li>
+                            </ul>
+                            <small class="text-info">Total: KPI(50%) + Rasio(40%) + Absensi(5%) + Keterlambatan(5%) = 100%</small>
                         </div>
                     </div>
                 </div>

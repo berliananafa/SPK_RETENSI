@@ -46,8 +46,7 @@ class SubKriteriaController extends Admin_Controller
         
         $this->form_validation->set_rules('id_kriteria', 'Kriteria', 'required|numeric');
         $this->form_validation->set_rules('nama_sub_kriteria', 'Nama Sub Kriteria', 'required|trim|min_length[3]');
-        $this->form_validation->set_rules('bobot_sub', 'Bobot Sub', 'required|numeric|greater_than[0]');
-        $this->form_validation->set_rules('target', 'Target', 'required|numeric|greater_than[0]');
+        $this->form_validation->set_rules('bobot_sub', 'Bobot Sub', 'required|numeric|greater_than[0]|less_than_equal_to[100]');
         $this->form_validation->set_rules('keterangan', 'Keterangan', 'trim');
 
         if ($this->form_validation->run() === FALSE) {
@@ -57,7 +56,6 @@ class SubKriteriaController extends Admin_Controller
                 'id_kriteria' => $this->input->post('id_kriteria', true),
                 'nama_sub_kriteria' => $this->input->post('nama_sub_kriteria', true),
                 'bobot_sub' => $this->input->post('bobot_sub', true),
-                'target' => $this->input->post('target', true),
                 'keterangan' => $this->input->post('keterangan', true)
             ];
 
@@ -103,8 +101,7 @@ class SubKriteriaController extends Admin_Controller
         
         $this->form_validation->set_rules('id_kriteria', 'Kriteria', 'required|numeric');
         $this->form_validation->set_rules('nama_sub_kriteria', 'Nama Sub Kriteria', 'required|trim|min_length[3]');
-        $this->form_validation->set_rules('bobot_sub', 'Bobot Sub', 'required|numeric|greater_than[0]');
-        $this->form_validation->set_rules('target', 'Target', 'required|numeric|greater_than[0]');
+        $this->form_validation->set_rules('bobot_sub', 'Bobot Sub', 'required|numeric|greater_than[0]|less_than_equal_to[100]');
         $this->form_validation->set_rules('keterangan', 'Keterangan', 'trim');
 
         if ($this->form_validation->run() === FALSE) {
@@ -114,7 +111,6 @@ class SubKriteriaController extends Admin_Controller
                 'id_kriteria' => $this->input->post('id_kriteria', true),
                 'nama_sub_kriteria' => $this->input->post('nama_sub_kriteria', true),
                 'bobot_sub' => $this->input->post('bobot_sub', true),
-                'target' => $this->input->post('target', true),
                 'keterangan' => $this->input->post('keterangan', true)
             ];
 

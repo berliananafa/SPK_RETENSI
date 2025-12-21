@@ -44,25 +44,12 @@
                                   placeholder="Keterangan singkat tentang sub kriteria ini"><?= set_value('keterangan', $sub_kriteria->keterangan) ?></textarea>
                     </div>
 
-                    <div class="row">
-                        <div class="col-md-6">
-                            <div class="form-group">
-                                <label for="bobot_sub">Bobot Sub <span class="text-danger">*</span></label>
-                                <input type="number" class="form-control" id="bobot_sub" name="bobot_sub" 
-                                       value="<?= set_value('bobot_sub', $sub_kriteria->bobot_sub) ?>" min="0" step="0.01" 
-                                       placeholder="25.00" required>
-                                <small class="form-text text-muted">Bobot numerik sub kriteria</small>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="form-group">
-                                <label for="target">Target <span class="text-danger">*</span></label>
-                                <input type="number" class="form-control" id="target" name="target" 
-                                       value="<?= set_value('target', $sub_kriteria->target) ?>" min="0" step="0.01" 
-                                       placeholder="85.00" required>
-                                <small class="form-text text-muted">Nilai target/standar yang diharapkan</small>
-                            </div>
-                        </div>
+                    <div class="form-group">
+                        <label for="bobot_sub">Bobot (%) <span class="text-danger">*</span></label>
+                        <input type="number" class="form-control" id="bobot_sub" name="bobot_sub" 
+                               value="<?= set_value('bobot_sub', $sub_kriteria->bobot_sub) ?>" min="0" max="100" step="0.01" 
+                               placeholder="50.00" required>
+                        <small class="form-text text-muted">Persentase dari total 100% (bukan dari kriteria induk)</small>
                     </div>
 
                     <hr class="my-4">

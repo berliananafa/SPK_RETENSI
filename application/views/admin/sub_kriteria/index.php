@@ -34,8 +34,7 @@
                             <th width="5%">No</th>
                             <th>Kriteria</th>
                             <th>Nama Sub Kriteria</th>
-                            <th>Bobot Sub</th>
-                            <th>Target</th>
+                            <th>Bobot (%)</th>
                             <th width="15%" class="text-center">Aksi</th>
                         </tr>
                     </thead>
@@ -45,28 +44,16 @@
                                 <tr data-kriteria="<?= $sub->id_kriteria ?>">
                                     <td><?= $index + 1 ?></td>
                                     <td>
-                                        <span class="badge badge-primary"><?= htmlspecialchars($sub->kode_kriteria ?? '-') ?></span>
-                                        <br><small class="text-muted"><?= htmlspecialchars($sub->nama_kriteria ?? '-') ?></small>
+                                      <strong><?= htmlspecialchars($sub->kode_kriteria ?? '-') ?></strong> - <?= htmlspecialchars($sub->nama_kriteria ?? '-') ?>
                                     </td>
                                     <td>
-                                        <div class="d-flex align-items-center">
-                                            <div>
-                                                <strong><?= htmlspecialchars($sub->nama_sub_kriteria) ?></strong>
-                                                <?php if (!empty($sub->keterangan)): ?>
-                                                    <br><small class="text-muted"><?= htmlspecialchars($sub->keterangan) ?></small>
-                                                <?php endif; ?>
-                                            </div>
-                                        </div>
+                                        <?= htmlspecialchars($sub->nama_sub_kriteria) ?>
+                                        <?php if (!empty($sub->keterangan)): ?>
+                                            <br><small class="text-muted"><?= htmlspecialchars($sub->keterangan) ?></small>
+                                        <?php endif; ?>
                                     </td>
                                     <td>
-                                        <span class="badge badge-info" style="font-size: 0.7rem; padding: 0.5rem 0.8rem;">
-                                            <?= number_format($sub->bobot_sub, 2) ?>
-                                        </span>
-                                    </td>
-                                    <td>
-                                        <span class="badge badge-pill badge-warning" style="font-size: 0.7rem; padding: 0.5rem 0.8rem;">
-                                            <i class="fe fe-target"></i> <?= number_format($sub->target, 2) ?>
-                                        </span>
+                                        <strong><?= number_format($sub->bobot_sub, 0) ?>%</strong>
                                     </td>
                                     <td class="text-center">
                                         <div class="btn-group" role="group">
@@ -87,7 +74,7 @@
                             <?php endforeach; ?>
                         <?php else: ?>
                             <tr>
-                                <td colspan="6" class="text-center text-muted py-4">
+                                <td colspan="5" class="text-center text-muted py-4">
                                     <i class="fe fe-inbox fe-24 mb-3"></i>
                                     <p>Belum ada data Sub Kriteria</p>
                                 </td>
@@ -113,8 +100,9 @@
                         <h6 class="mb-1">Informasi Sub Kriteria</h6>
                         <p class="mb-0 text-muted small">
                             Sub kriteria adalah penjabaran detail dari setiap kriteria utama. 
-                            Setiap sub kriteria memiliki nilai yang akan digunakan dalam perhitungan ranking.
-                            Pastikan setiap kriteria memiliki minimal 1 sub kriteria aktif.
+                            <strong>Bobot Sub Kriteria</strong> merepresentasikan persentase dari <strong>total 100%</strong>. 
+                            Contoh: KPI (50%) + Rasio Target (40%) = 90% untuk kriteria Core Factor. 
+                            Pastikan total bobot sesuai dengan jenis kriteria induknya.
                         </p>
                     </div>
                 </div>
