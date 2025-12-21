@@ -154,13 +154,14 @@ CREATE TABLE `sub_kriteria` (
 
 -- ============================================
 -- Tabel: range (Range Nilai untuk Sub Kriteria)
+-- Supports open ranges: NULL batas_bawah for ≤, NULL batas_atas for ≥
 -- ============================================
 CREATE TABLE `range` (
   `id_range` INT(11) NOT NULL AUTO_INCREMENT,
   `id_sub_kriteria` INT(11) NOT NULL,
-  `batas_atas` DECIMAL(10,2) NOT NULL,
-  `batas_bawah` DECIMAL(10,2) NOT NULL,
-  `nilai_range` DECIMAL(5,2) NOT NULL COMMENT 'Nilai konversi untuk range ini',
+  `batas_atas` DECIMAL(10,2) DEFAULT NULL COMMENT 'NULL for open range (≥)',
+  `batas_bawah` DECIMAL(10,2) DEFAULT NULL COMMENT 'NULL for open range (≤)',
+  `nilai_range` DECIMAL(5,2) NOT NULL COMMENT 'Nilai konversi untuk range ini (1-5)',
   `keterangan` VARCHAR(100) DEFAULT NULL,
   `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -185,7 +186,7 @@ CREATE TABLE `konversi` (
   KEY `fk_konversi_cs` (`id_cs`),
   KEY `fk_konversi_subkriteria` (`id_sub_kriteria`),
   CONSTRAINT `fk_konversi_cs` FOREIGN KEY (`id_cs`) REFERENCES `customer_service` (`id_cs`) ON DELETE CASCADE ON UPDATE CASCADE,
-  CONSTRAINT `fk_konversi_subkriteria` FOREIGN KEY (`id_sub_kriteria`) REFERENCES `sub_kriteria` (`id_sub_kriteria`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `fk_konversi_subkriteria` FOREIGN KEY (`id_sub_kriteria`) REFERENCES `sub_kriteria` (`id_sub_kriteria`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- ============================================

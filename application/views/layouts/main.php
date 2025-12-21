@@ -146,15 +146,36 @@
 	<?php if (!empty($include_datatables)): ?>
 	<script>
 		$(document).ready(function () {
-			$('#dataTable-1').DataTable({
-				autoWidth: true,
-				"lengthMenu": [
-					[10, 20, 30, -1],
-					[10, 20, 30, "All"]
-				]
-			});
+			// Initialize DataTable with default config
+			if ($('#dataTable-1').length && !$.fn.DataTable.isDataTable('#dataTable-1')) {
+				window.dataTable = $('#dataTable-1').DataTable({
+					autoWidth: true,
+					pageLength: 10,
+					ordering: true,
+					searching: true,
+					lengthMenu: [
+						[10, 20, 30, 50, -1],
+						[10, 20, 30, 50, "Semua"]
+					],
+					language: {
+						search: "Cari:",
+						lengthMenu: "Tampilkan _MENU_ data per halaman",
+						info: "Menampilkan _START_ sampai _END_ dari _TOTAL_ data",
+						infoEmpty: "Menampilkan 0 sampai 0 dari 0 data",
+						infoFiltered: "(difilter dari _MAX_ total data)",
+						paginate: {
+							first: "Pertama",
+							last: "Terakhir",
+							next: "Selanjutnya",
+							previous: "Sebelumnya"
+						},
+						emptyTable: "Tidak ada data yang tersedia",
+						zeroRecords: "Tidak ada data yang cocok",
+						processing: "Memproses..."
+					}
+				});
+			}
 		});
-
 	</script>
 	<?php endif; ?>
 
