@@ -24,6 +24,7 @@ class RangeController extends Admin_Controller
         
         $data['ranges'] = $this->RangeModel->getAllWithDetails();
         $data['all_kriteria'] = $this->KriteriaModel->getAllOrdered();
+        $data['all_sub_kriteria'] = $this->SubKriteriaModel->getAllWithDetails();
         
         render_layout('admin/range/index', $data);
     }
@@ -46,18 +47,21 @@ class RangeController extends Admin_Controller
         $this->load->library('form_validation');
         
         $this->form_validation->set_rules('id_sub_kriteria', 'Sub Kriteria', 'required|numeric');
-        $this->form_validation->set_rules('batas_bawah', 'Batas Bawah', 'required|numeric');
-        $this->form_validation->set_rules('batas_atas', 'Batas Atas', 'required|numeric|callback_check_batas_atas');
+        $this->form_validation->set_rules('batas_bawah', 'Batas Bawah', 'trim|numeric');
+        $this->form_validation->set_rules('batas_atas', 'Batas Atas', 'trim|numeric|callback_check_batas_valid');
         $this->form_validation->set_rules('nilai_range', 'Nilai Range', 'required|numeric');
         $this->form_validation->set_rules('keterangan', 'Keterangan', 'trim');
 
         if ($this->form_validation->run() === FALSE) {
             $this->create();
         } else {
+            $batas_bawah = $this->input->post('batas_bawah', true);
+            $batas_atas = $this->input->post('batas_atas', true);
+            
             $data = [
                 'id_sub_kriteria' => $this->input->post('id_sub_kriteria', true),
-                'batas_bawah' => $this->input->post('batas_bawah', true),
-                'batas_atas' => $this->input->post('batas_atas', true),
+                'batas_bawah' => ($batas_bawah !== '' && $batas_bawah !== null) ? $batas_bawah : null,
+                'batas_atas' => ($batas_atas !== '' && $batas_atas !== null) ? $batas_atas : null,
                 'nilai_range' => $this->input->post('nilai_range', true),
                 'keterangan' => $this->input->post('keterangan', true)
             ];
@@ -110,18 +114,21 @@ class RangeController extends Admin_Controller
         $this->load->library('form_validation');
         
         $this->form_validation->set_rules('id_sub_kriteria', 'Sub Kriteria', 'required|numeric');
-        $this->form_validation->set_rules('batas_bawah', 'Batas Bawah', 'required|numeric');
-        $this->form_validation->set_rules('batas_atas', 'Batas Atas', 'required|numeric|callback_check_batas_atas');
+        $this->form_validation->set_rules('batas_bawah', 'Batas Bawah', 'trim|numeric');
+        $this->form_validation->set_rules('batas_atas', 'Batas Atas', 'trim|numeric|callback_check_batas_valid');
         $this->form_validation->set_rules('nilai_range', 'Nilai Range', 'required|numeric');
         $this->form_validation->set_rules('keterangan', 'Keterangan', 'trim');
 
         if ($this->form_validation->run() === FALSE) {
             $this->edit($id);
         } else {
+            $batas_bawah = $this->input->post('batas_bawah', true);
+            $batas_atas = $this->input->post('batas_atas', true);
+            
             $data = [
                 'id_sub_kriteria' => $this->input->post('id_sub_kriteria', true),
-                'batas_bawah' => $this->input->post('batas_bawah', true),
-                'batas_atas' => $this->input->post('batas_atas', true),
+                'batas_bawah' => ($batas_bawah !== '' && $batas_bawah !== null) ? $batas_bawah : null,
+                'batas_atas' => ($batas_atas !== '' && $batas_atas !== null) ? $batas_atas : null,
                 'nilai_range' => $this->input->post('nilai_range', true),
                 'keterangan' => $this->input->post('keterangan', true)
             ];
@@ -160,13 +167,24 @@ class RangeController extends Admin_Controller
         redirect('admin/range');
     }
 
-    public function check_batas_atas($batas_atas)
+    public function check_batas_valid($batas_atas)
     {
         $batas_bawah = $this->input->post('batas_bawah');
-        if ($batas_atas <= $batas_bawah) {
-            $this->form_validation->set_message('check_batas_atas', 'Batas atas harus lebih besar dari batas bawah!');
+        
+        // Allow NULL for open ranges
+        if (($batas_bawah === '' || $batas_bawah === null) && ($batas_atas === '' || $batas_atas === null)) {
+            $this->form_validation->set_message('check_batas_valid', 'Minimal salah satu batas (bawah/atas) harus diisi!');
             return FALSE;
         }
+        
+        // If both filled, batas_atas must be >= batas_bawah (allow equal for single value)
+        if (($batas_bawah !== '' && $batas_bawah !== null) && ($batas_atas !== '' && $batas_atas !== null)) {
+            if ($batas_atas < $batas_bawah) {
+                $this->form_validation->set_message('check_batas_valid', 'Batas atas tidak boleh lebih kecil dari batas bawah!');
+                return FALSE;
+            }
+        }
+        
         return TRUE;
     }
 }

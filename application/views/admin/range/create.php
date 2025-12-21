@@ -35,29 +35,29 @@
                     <div class="row">
                         <div class="col-md-4">
                             <div class="form-group">
-                                <label for="batas_bawah">Batas Bawah <span class="text-danger">*</span></label>
+                                <label for="batas_bawah">Batas Bawah</label>
                                 <input type="number" class="form-control" id="batas_bawah" name="batas_bawah" 
                                        value="<?= set_value('batas_bawah') ?>" step="0.01" 
-                                       placeholder="Contoh: 0" required>
-                                <small class="form-text text-muted">Nilai minimum range</small>
+                                       placeholder="Kosongkan untuk ≤ (tak terbatas bawah)">
+                                <small class="form-text text-muted">Nilai minimum (kosongkan untuk ≤)</small>
                             </div>
                         </div>
                         <div class="col-md-4">
                             <div class="form-group">
-                                <label for="batas_atas">Batas Atas <span class="text-danger">*</span></label>
+                                <label for="batas_atas">Batas Atas</label>
                                 <input type="number" class="form-control" id="batas_atas" name="batas_atas" 
                                        value="<?= set_value('batas_atas') ?>" step="0.01" 
-                                       placeholder="Contoh: 100" required>
-                                <small class="form-text text-muted">Nilai maksimum range</small>
+                                       placeholder="Kosongkan untuk ≥ (tak terbatas atas)">
+                                <small class="form-text text-muted">Nilai maksimum (kosongkan untuk ≥)</small>
                             </div>
                         </div>
                         <div class="col-md-4">
                             <div class="form-group">
-                                <label for="nilai_range">Nilai Range <span class="text-danger">*</span></label>
+                                <label for="nilai_range">Poin/Nilai <span class="text-danger">*</span></label>
                                 <input type="number" class="form-control" id="nilai_range" name="nilai_range" 
-                                       value="<?= set_value('nilai_range') ?>" step="0.01" 
-                                       placeholder="Contoh: 5" required>
-                                <small class="form-text text-muted">Nilai hasil konversi</small>
+                                       value="<?= set_value('nilai_range') ?>" step="1" min="1" max="5"
+                                       placeholder="1-5" required>
+                                <small class="form-text text-muted">Poin hasil (1-5)</small>
                             </div>
                         </div>
                     </div>
@@ -94,16 +94,51 @@
                         <i class="fe fe-help-circle fe-24 text-info"></i>
                     </div>
                     <div class="col">
-                        <h6 class="mb-1">Contoh Range Nilai</h6>
+                        <h6 class="mb-1">Contoh Range Nilai (Sub Kriteria: KPI)</h6>
                         <div class="small text-muted">
-                            <strong>Kriteria: Produktivitas (Transaksi per Hari)</strong>
-                            <ul class="mb-0 mt-2">
-                                <li>0 - 50 transaksi → Nilai Konversi: 1 (Sangat Rendah)</li>
-                                <li>51 - 100 transaksi → Nilai Konversi: 2 (Rendah)</li>
-                                <li>101 - 150 transaksi → Nilai Konversi: 3 (Sedang)</li>
-                                <li>151 - 200 transaksi → Nilai Konversi: 4 (Tinggi)</li>
-                                <li>201 - 250 transaksi → Nilai Konversi: 5 (Sangat Tinggi)</li>
-                            </ul>
+                            <table class="table table-sm table-bordered mt-2">
+                                <thead>
+                                    <tr>
+                                        <th>No</th>
+                                        <th>Range Nilai</th>
+                                        <th>Poin</th>
+                                        <th>Keterangan</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>1</td>
+                                        <td>≥ 100.000</td>
+                                        <td><strong>5</strong></td>
+                                        <td>Sangat Baik</td>
+                                    </tr>
+                                    <tr>
+                                        <td>2</td>
+                                        <td>80.000 - 99.999</td>
+                                        <td><strong>4</strong></td>
+                                        <td>Baik</td>
+                                    </tr>
+                                    <tr>
+                                        <td>3</td>
+                                        <td>50.000 - 79.999</td>
+                                        <td><strong>3</strong></td>
+                                        <td>Cukup</td>
+                                    </tr>
+                                    <tr>
+                                        <td>4</td>
+                                        <td>30.000 - 49.999</td>
+                                        <td><strong>2</strong></td>
+                                        <td>Kurang</td>
+                                    </tr>
+                                    <tr>
+                                        <td>5</td>
+                                        <td>≤ 29.999</td>
+                                        <td><strong>1</strong></td>
+                                        <td>Sangat Kurang</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                            <small class="text-info"><strong>Catatan:</strong> Kosongkan batas bawah untuk ≤, kosongkan batas atas untuk ≥</small>
                         </div>
                     </div>
                 </div>

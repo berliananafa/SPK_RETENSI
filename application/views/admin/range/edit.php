@@ -35,29 +35,29 @@
                     <div class="row">
                         <div class="col-md-4">
                             <div class="form-group">
-                                <label for="batas_bawah">Batas Bawah <span class="text-danger">*</span></label>
+                                <label for="batas_bawah">Batas Bawah</label>
                                 <input type="number" class="form-control" id="batas_bawah" name="batas_bawah" 
                                        value="<?= set_value('batas_bawah', $range->batas_bawah) ?>" step="0.01" 
-                                       placeholder="Contoh: 0" required>
-                                <small class="form-text text-muted">Nilai minimum range</small>
+                                       placeholder="Kosongkan untuk ≤ (tak terbatas bawah)">
+                                <small class="form-text text-muted">Nilai minimum (kosongkan untuk ≤)</small>
                             </div>
                         </div>
                         <div class="col-md-4">
                             <div class="form-group">
-                                <label for="batas_atas">Batas Atas <span class="text-danger">*</span></label>
+                                <label for="batas_atas">Batas Atas</label>
                                 <input type="number" class="form-control" id="batas_atas" name="batas_atas" 
                                        value="<?= set_value('batas_atas', $range->batas_atas) ?>" step="0.01" 
-                                       placeholder="Contoh: 100" required>
-                                <small class="form-text text-muted">Nilai maksimum range</small>
+                                       placeholder="Kosongkan untuk ≥ (tak terbatas atas)">
+                                <small class="form-text text-muted">Nilai maksimum (kosongkan untuk ≥)</small>
                             </div>
                         </div>
                         <div class="col-md-4">
                             <div class="form-group">
-                                <label for="nilai_range">Nilai Range <span class="text-danger">*</span></label>
+                                <label for="nilai_range">Poin/Nilai <span class="text-danger">*</span></label>
                                 <input type="number" class="form-control" id="nilai_range" name="nilai_range" 
-                                       value="<?= set_value('nilai_range', $range->nilai_range) ?>" step="0.01" 
-                                       placeholder="Contoh: 5" required>
-                                <small class="form-text text-muted">Nilai hasil konversi</small>
+                                       value="<?= set_value('nilai_range', $range->nilai_range) ?>" step="1" min="1" max="5"
+                                       placeholder="1-5" required>
+                                <small class="form-text text-muted">Poin hasil (1-5)</small>
                             </div>
                         </div>
                     </div>
@@ -84,24 +84,49 @@
     </div>
 </div>
 
-<!-- Warning Card -->
-<div class="row mt-3">
+<!-- Example & Info Card -->
+<!-- <div class="row mt-3">
     <div class="col-12">
-        <div class="card shadow-sm border-left-warning">
+        <div class="card shadow-sm border-left-info">
             <div class="card-body">
-                <div class="row align-items-center">
-                    <div class="col-auto">
-                        <i class="fe fe-alert-triangle fe-24 text-warning"></i>
-                    </div>
-                    <div class="col">
-                        <h6 class="mb-1">Perhatian</h6>
-                        <p class="mb-0 text-muted small">
-                            Pastikan range nilai tidak tumpang tindih dengan range lain pada kriteria yang sama.
-                            Perubahan range akan mempengaruhi hasil konversi dan perhitungan ranking.
-                        </p>
-                    </div>
+                <h6 class="mb-3"><i class="fe fe-info"></i> Contoh Range Terbuka</h6>
+                <div class="table-responsive">
+                    <table class="table table-sm table-bordered">
+                        <thead class="thead-light">
+                            <tr>
+                                <th>Range Nilai</th>
+                                <th>Poin</th>
+                                <th>Keterangan</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>≥ 100.000</td>
+                                <td>5</td>
+                                <td>Kosongkan Batas Bawah, isi Batas Atas: 100000</td>
+                            </tr>
+                            <tr>
+                                <td>80.000 - 99.999</td>
+                                <td>4</td>
+                                <td>Isi Batas Bawah: 80000, Batas Atas: 99999</td>
+                            </tr>
+                            <tr>
+                                <td>50.000 - 79.999</td>
+                                <td>3</td>
+                                <td>Isi Batas Bawah: 50000, Batas Atas: 79999</td>
+                            </tr>
+                            <tr>
+                                <td>≤ 29.999</td>
+                                <td>1</td>
+                                <td>Isi Batas Bawah: 29999, kosongkan Batas Atas</td>
+                            </tr>
+                        </tbody>
+                    </table>
                 </div>
+                <p class="mb-0 text-muted small">
+                    <strong>Catatan:</strong> Minimal salah satu batas harus diisi. Pastikan range tidak tumpang tindih.
+                </p>
             </div>
         </div>
     </div>
-</div>
+</div> -->
