@@ -3,9 +3,26 @@
         <div class="card shadow">
             <div class="card-header d-flex justify-content-between align-items-center">
                 <strong class="card-title mb-0">Daftar Customer Service</strong>
-                <a href="<?= base_url('admin/customer-service/create') ?>" class="btn btn-primary btn-sm">
-                    <i class="fe fe-plus"></i> Tambah CS
-                </a>
+                <div class="btn-group">
+                    <a href="<?= base_url('admin/customer-service/create') ?>" class="btn btn-primary btn-sm">
+                        <i class="fe fe-plus"></i> Tambah CS
+                    </a>
+                    <button type="button" class="btn btn-success btn-sm dropdown-toggle dropdown-toggle-split" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                        <i class="fe fe-download"></i> Import/Export
+                    </button>
+                    <div class="dropdown-menu dropdown-menu-right">
+                        <a class="dropdown-item" href="<?= base_url('admin/customer-service/import') ?>">
+                            <i class="fe fe-upload"></i> Import Data
+                        </a>
+                        <a class="dropdown-item" href="<?= base_url('admin/customer-service/download-template') ?>">
+                            <i class="fe fe-file"></i> Download Template
+                        </a>
+                        <div class="dropdown-divider"></div>
+                        <a class="dropdown-item" href="<?= base_url('admin/customer-service/export') ?>">
+                            <i class="fe fe-download"></i> Export ke Excel
+                        </a>
+                    </div>
+                </div>
             </div>
             <div class="card-body">
                 <!-- Table -->

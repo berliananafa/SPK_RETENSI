@@ -34,4 +34,14 @@ class KanalModel extends MY_Model
     {
         return $this->db->order_by('nama_kanal', 'ASC')->get($this->table)->result();
     }
+
+    /**
+     * Get channel by name
+     */
+    public function getByName($nama)
+    {
+        return $this->db->where('nama_kanal', $nama)
+            ->get($this->table)
+            ->row();
+    }
 }

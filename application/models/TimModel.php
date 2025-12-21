@@ -99,6 +99,16 @@ class TimModel extends MY_Model
     }
 
     /**
+     * Get team by name
+     */
+    public function getByName($nama)
+    {
+        return $this->db->where('nama_tim', $nama)
+            ->get($this->table)
+            ->row();
+    }
+
+    /**
      * Get teams by supervisor
      */
     public function getBySupervisor($idSupervisor)

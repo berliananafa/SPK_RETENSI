@@ -53,4 +53,14 @@ class ProdukModel extends MY_Model
     {
         return $this->db->order_by('nama_produk', 'ASC')->get($this->table)->result();
     }
+
+    /**
+     * Get product by name
+     */
+    public function getByName($nama)
+    {
+        return $this->db->where('nama_produk', $nama)
+            ->get($this->table)
+            ->row();
+    }
 }

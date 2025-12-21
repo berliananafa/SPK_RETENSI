@@ -131,6 +131,10 @@ $route['admin/customer-service/detail/(:num)'] = 'admin/CustomerServiceControlle
 $route['admin/customer-service/edit/(:num)'] = 'admin/CustomerServiceController/edit/$1';
 $route['admin/customer-service/update/(:num)'] = 'admin/CustomerServiceController/update/$1';
 $route['admin/customer-service/delete/(:num)'] = 'admin/CustomerServiceController/delete/$1';
+$route['admin/customer-service/import'] = 'admin/CustomerServiceController/import';
+$route['admin/customer-service/process-import'] = 'admin/CustomerServiceController/process_import';
+$route['admin/customer-service/download-template'] = 'admin/CustomerServiceController/download_template';
+$route['admin/customer-service/export'] = 'admin/CustomerServiceController/export';
 
 // Konfigurasi SPK
 $route['admin/kriteria'] = 'admin/KriteriaController/index';
