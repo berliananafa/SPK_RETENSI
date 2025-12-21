@@ -22,7 +22,6 @@
                             <th>Kode</th>
                             <th>Nama Kriteria</th>
                             <th>Jenis Kriteria</th>
-                            <th>Bobot (%)</th>
                             <th width="15%" class="text-center">Aksi</th>
                         </tr>
                     </thead>
@@ -31,7 +30,7 @@
                             <?php foreach ($kriteria as $index => $krt): ?>
                                 <tr>
                                     <td><?= $index + 1 ?></td>
-                                    <td><span class="badge badge-soft-primary"><?= htmlspecialchars($krt->kode_kriteria) ?></span></td>
+                                    <td><strong><?= htmlspecialchars($krt->kode_kriteria) ?></strong></td>
                                     <td>
                                         <div class="d-flex align-items-center">
                                             <div>
@@ -44,19 +43,10 @@
                                     </td>
                                     <td>
                                         <?php if (isset($krt->jenis_kriteria) && $krt->jenis_kriteria == 'core_factor'): ?>
-                                            <span class="badge badge-danger"><i class="fe fe-star"></i> Core Factor</span>
+                                            <strong class="text-danger">Core Factor</strong> <small class="text-muted">(90%)</small>
                                         <?php else: ?>
-                                            <span class="badge badge-info"><i class="fe fe-circle"></i> Secondary Factor</span>
+                                            <strong class="text-info">Secondary Factor</strong> <small class="text-muted">(10%)</small>
                                         <?php endif; ?>
-                                    </td>
-                                    <td>
-                                        <div class="progress" style="height: 20px;">
-                                            <div class="progress-bar bg-primary" role="progressbar" 
-                                                 style="width: <?= $krt->bobot ?>%;" aria-valuenow="<?= $krt->bobot ?>" 
-                                                 aria-valuemin="0" aria-valuemax="100">
-                                                <?= number_format($krt->bobot, 2) ?>%
-                                            </div>
-                                        </div>
                                     </td>
                                     <td class="text-center">
                                         <div class="btn-group" role="group">
@@ -77,7 +67,7 @@
                             <?php endforeach; ?>
                         <?php else: ?>
                             <tr>
-                                <td colspan="6" class="text-center text-muted py-4">
+                                <td colspan="5" class="text-center text-muted py-4">
                                     <i class="fe fe-inbox fe-24 mb-3"></i>
                                     <p>Belum ada data kriteria</p>
                                 </td>
@@ -102,9 +92,9 @@
                     <div class="col">
                                                 <h6 class="mb-1">Tentang Profile Matching</h6>
                         <p class="mb-0 text-muted small">
-                            Kriteria dibagi menjadi <strong>Core Factor (60%)</strong> dan <strong>Secondary Factor (40%)</strong>. 
-                            Setiap kriteria memiliki <strong>Bobot</strong> yang menunjukkan tingkat kepentingan. 
-                            <strong>Nilai Target</strong> diatur per <strong>Sub Kriteria</strong>. <strong>GAP</strong> dihitung dari selisih nilai aktual CS dengan target sub kriteria.
+                            Kriteria dibagi menjadi <strong>Core Factor (90%)</strong> dan <strong>Secondary Factor (10%)</strong>. 
+                            Bobot otomatis sesuai jenis kriteria. <strong>Bobot detail</strong> diatur di <strong>Sub Kriteria</strong> yang merepresentasikan persentase dari total keseluruhan. 
+                            <strong>GAP</strong> dihitung dari selisih nilai aktual CS dengan target sub kriteria.
                         </p>
                     </div>
                 </div>

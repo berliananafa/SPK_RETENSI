@@ -43,17 +43,19 @@ class KriteriaController extends Admin_Controller
         $this->form_validation->set_rules('kode_kriteria', 'Kode Kriteria', 'required|trim|callback_check_kode_unique');
         $this->form_validation->set_rules('nama_kriteria', 'Nama Kriteria', 'required|trim|min_length[3]');
         $this->form_validation->set_rules('jenis_kriteria', 'Jenis Kriteria', 'required|in_list[core_factor,secondary_factor]');
-        $this->form_validation->set_rules('bobot', 'Bobot', 'required|numeric|greater_than[0]|less_than_equal_to[100]');
         $this->form_validation->set_rules('deskripsi', 'Deskripsi', 'trim');
 
         if ($this->form_validation->run() === FALSE) {
             $this->create();
         } else {
+            // Auto set bobot based on jenis_kriteria
+            $bobot = ($this->input->post('jenis_kriteria', true) == 'core_factor') ? 90 : 10;
+            
             $data = [
                 'kode_kriteria' => $this->input->post('kode_kriteria', true),
                 'nama_kriteria' => $this->input->post('nama_kriteria', true),
                 'jenis_kriteria' => $this->input->post('jenis_kriteria', true),
-                'bobot' => $this->input->post('bobot', true),
+                'bobot' => $bobot,
                 'deskripsi' => $this->input->post('deskripsi', true)
             ];
 
@@ -99,17 +101,19 @@ class KriteriaController extends Admin_Controller
         $this->form_validation->set_rules('kode_kriteria', 'Kode Kriteria', 'required|trim|callback_check_kode_unique['.$id.']');
         $this->form_validation->set_rules('nama_kriteria', 'Nama Kriteria', 'required|trim|min_length[3]');
         $this->form_validation->set_rules('jenis_kriteria', 'Jenis Kriteria', 'required|in_list[core_factor,secondary_factor]');
-        $this->form_validation->set_rules('bobot', 'Bobot', 'required|numeric|greater_than[0]|less_than_equal_to[100]');
         $this->form_validation->set_rules('deskripsi', 'Deskripsi', 'trim');
 
         if ($this->form_validation->run() === FALSE) {
             $this->edit($id);
         } else {
+            // Auto set bobot based on jenis_kriteria
+            $bobot = ($this->input->post('jenis_kriteria', true) == 'core_factor') ? 90 : 10;
+            
             $data = [
                 'kode_kriteria' => $this->input->post('kode_kriteria', true),
                 'nama_kriteria' => $this->input->post('nama_kriteria', true),
                 'jenis_kriteria' => $this->input->post('jenis_kriteria', true),
-                'bobot' => $this->input->post('bobot', true),
+                'bobot' => $bobot,
                 'deskripsi' => $this->input->post('deskripsi', true)
             ];
 

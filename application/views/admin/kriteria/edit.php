@@ -41,30 +41,17 @@
                                   placeholder="Deskripsi singkat tentang kriteria ini"><?= set_value('deskripsi', $kriteria->deskripsi) ?></textarea>
                     </div>
 
-                    <div class="row">
-                        <div class="col-md-6">
-                            <div class="form-group">
-                                <label for="jenis_kriteria">Jenis Kriteria <span class="text-danger">*</span></label>
-                                <select class="form-control" id="jenis_kriteria" name="jenis_kriteria" required>
-                                    <option value="">-- Pilih Jenis --</option>
-                                    <option value="core_factor" <?= set_select('jenis_kriteria', 'core_factor', ($kriteria->jenis_kriteria == 'core_factor')) ?>>Core Factor (Faktor Utama - 60%)</option>
-                                    <option value="secondary_factor" <?= set_select('jenis_kriteria', 'secondary_factor', ($kriteria->jenis_kriteria == 'secondary_factor')) ?>>Secondary Factor (Faktor Pendukung - 40%)</option>
-                                </select>
-                                <small class="form-text text-muted">
-                                    <strong>Core Factor:</strong> Faktor utama yang paling berpengaruh<br>
-                                    <strong>Secondary Factor:</strong> Faktor pendukung
-                                </small>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="form-group">
-                                <label for="bobot">Bobot (%) <span class="text-danger">*</span></label>
-                                <input type="number" class="form-control" id="bobot" name="bobot" 
-                                       value="<?= set_value('bobot', $kriteria->bobot) ?>" min="0" max="100" step="0.01" 
-                                       placeholder="0.00" required>
-                                <small class="form-text text-muted">Bobot menunjukkan tingkat kepentingan kriteria</small>
-                            </div>
-                        </div>
+                    <div class="form-group">
+                        <label for="jenis_kriteria">Jenis Kriteria <span class="text-danger">*</span></label>
+                        <select class="form-control" id="jenis_kriteria" name="jenis_kriteria" required>
+                            <option value="">-- Pilih Jenis --</option>
+                            <option value="core_factor" <?= set_select('jenis_kriteria', 'core_factor', ($kriteria->jenis_kriteria == 'core_factor')) ?>>Core Factor (Faktor Utama - 90%)</option>
+                            <option value="secondary_factor" <?= set_select('jenis_kriteria', 'secondary_factor', ($kriteria->jenis_kriteria == 'secondary_factor')) ?>>Secondary Factor (Faktor Pendukung - 10%)</option>
+                        </select>
+                        <small class="form-text text-muted">
+                            <strong>Core Factor:</strong> Faktor utama yang paling berpengaruh (Bobot otomatis 90%)<br>
+                            <strong>Secondary Factor:</strong> Faktor pendukung (Bobot otomatis 10%)
+                        </small>
                     </div>
 
                     <hr class="my-4">
