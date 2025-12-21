@@ -156,12 +156,6 @@ if ($user_level === 'admin') {
 					<span class="ml-3 item-text">Range Nilai</span>
 				</a>
 			</li>
-			<li class="nav-item w-100 <?= (strpos($current_url, 'admin/konversi') !== false) ? 'active' : '' ?>">
-				<a class="nav-link" href="<?= base_url('admin/konversi') ?>">
-					<i class="fe fe-refresh-cw"></i>
-					<span class="ml-3 item-text">Konversi</span>
-				</a>
-			</li>
 		</ul>
 
 		<p class="mt-4 mb-1 text-muted nav-heading"><span>Penilaian</span></p>

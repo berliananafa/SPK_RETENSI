@@ -158,13 +158,6 @@ $route['admin/range/edit/(:num)'] = 'admin/RangeController/edit/$1';
 $route['admin/range/update/(:num)'] = 'admin/RangeController/update/$1';
 $route['admin/range/delete/(:num)'] = 'admin/RangeController/delete/$1';
 
-$route['admin/konversi'] = 'admin/KonversiController/index';
-$route['admin/konversi/create'] = 'admin/KonversiController/create';
-$route['admin/konversi/store'] = 'admin/KonversiController/store';
-$route['admin/konversi/edit/(:num)'] = 'admin/KonversiController/edit/$1';
-$route['admin/konversi/update/(:num)'] = 'admin/KonversiController/update/$1';
-$route['admin/konversi/delete/(:num)'] = 'admin/KonversiController/delete/$1';
-
 // Penilaian
 $route['admin/nilai'] = 'admin/NilaiController/index';
 $route['admin/nilai/input'] = 'admin/NilaiController/input';
