@@ -36,13 +36,17 @@ class KriteriaController extends Manager_Controller
         }
 
         if (empty($id)) {
-            json_response(['status' => 'error', 'message' => 'ID kriteria tidak diberikan'], 400);
+            $this->output->set_status_header(400);
+            echo json_encode(['status' => 'error', 'message' => 'ID kriteria tidak diberikan']);
+            return;
         }
 
         // Ambil kriteria
         $k = $this->KriteriaModel->getById($id);
         if (!$k) {
-            json_response(['status' => 'error', 'message' => 'Kriteria tidak ditemukan'], 404);
+            $this->output->set_status_header(404);
+            echo json_encode(['status' => 'error', 'message' => 'Kriteria tidak ditemukan']);
+            return;
         }
 
         // Update status/approved flag. Sesuaikan field sesuai model/database.
@@ -54,9 +58,11 @@ class KriteriaController extends Manager_Controller
 
         $saved = $this->KriteriaModel->update($id, $update);
         if ($saved) {
-            json_response(['status' => 'success', 'message' => 'Kriteria berhasil disetujui']);
+            $this->output->set_content_type('application/json');
+            echo json_encode(['status' => 'success', 'message' => 'Kriteria berhasil disetujui']);
         } else {
-            json_response(['status' => 'error', 'message' => 'Gagal menyimpan perubahan'], 500);
+            $this->output->set_status_header(500);
+            echo json_encode(['status' => 'error', 'message' => 'Gagal menyimpan perubahan']);
         }
     }
 }

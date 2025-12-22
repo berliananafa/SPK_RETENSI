@@ -64,7 +64,9 @@ class RankingController extends Supervisor_Controller
 		}
 
 		if (empty($id)) {
-			json_response(['status' => 'error', 'message' => 'ID ranking tidak diberikan'], 400);
+			$this->output->set_status_header(400);
+			echo json_encode(['status' => 'error', 'message' => 'ID ranking tidak diberikan']);
+			return;
 		}
 
 		$supervisorId = $this->session->userdata('user_id');
@@ -72,7 +74,9 @@ class RankingController extends Supervisor_Controller
 		// Ambil ranking
 		$ranking = $this->RankingModel->getByIdWithDetails($id);
 		if (!$ranking) {
-			json_response(['status' => 'error', 'message' => 'Ranking tidak ditemukan'], 404);
+			$this->output->set_status_header(404);
+			echo json_encode(['status' => 'error', 'message' => 'Ranking tidak ditemukan']);
+			return;
 		}
 
 		// Validasi: ranking harus milik tim di bawah supervisor ini
@@ -84,7 +88,9 @@ class RankingController extends Supervisor_Controller
 			->row();
 
 		if (!$teamBelongsToSupervisor) {
-			json_response(['status' => 'error', 'message' => 'Anda tidak memiliki akses ke ranking ini'], 403);
+			$this->output->set_status_header(403);
+			echo json_encode(['status' => 'error', 'message' => 'Anda tidak memiliki akses ke ranking ini']);
+			return;
 		}
 
 		// Update status ranking menjadi "approved" (atau "validated" untuk supervisor)
@@ -97,9 +103,11 @@ class RankingController extends Supervisor_Controller
 
 		$saved = $this->RankingModel->update($id, $update);
 		if ($saved) {
-			json_response(['status' => 'success', 'message' => 'Ranking berhasil disetujui oleh supervisor']);
+			$this->output->set_content_type('application/json');
+			echo json_encode(['status' => 'success', 'message' => 'Ranking berhasil disetujui oleh supervisor']);
 		} else {
-			json_response(['status' => 'error', 'message' => 'Gagal menyimpan perubahan'], 500);
+			$this->output->set_status_header(500);
+			echo json_encode(['status' => 'error', 'message' => 'Gagal menyimpan perubahan']);
 		}
 	}
 }

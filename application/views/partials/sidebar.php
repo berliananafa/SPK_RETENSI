@@ -310,8 +310,8 @@ if ($user_level === 'admin') {
 
 		<p class="mt-4 mb-1 text-muted nav-heading"><span>Monitoring</span></p>
 		<ul class="navbar-nav flex-fill w-100">
-			<li class="nav-item w-100 <?= (strpos($current_url, 'supervisor/monitor') !== false) ? 'active' : '' ?>">
-				<a class="nav-link" href="<?= base_url('supervisor/monitor') ?>">
+			<li class="nav-item w-100 <?= (strpos($current_url, 'supervisor/nilai') !== false) ? 'active' : '' ?>">
+				<a class="nav-link" href="<?= base_url('supervisor/nilai') ?>">
 					<i class="fe fe-eye"></i>
 					<span class="ml-3 item-text">Monitor Penilaian</span>
 				</a>
