@@ -70,14 +70,25 @@ class RangeModel extends MY_Model
 
 	/**
 	 * Get sub kriteria by nilai range
+	 * Supports NULL boundaries: NULL batas_bawah = ≤, NULL batas_atas = ≥
 	 */
 	public function getSubKriteriaByNilai($idSubKriteria, $nilai)
 	{
-		return $this->db->where('id_sub_kriteria', $idSubKriteria)
-			->where('batas_bawah <=', $nilai)
-			->where('batas_atas >=', $nilai)
-			->get($this->table)
-			->row();
+		$this->db->where('id_sub_kriteria', $idSubKriteria);
+		
+		// Handle batas_bawah: NULL berarti ≤ batas_atas saja
+		$this->db->group_start()
+			->where('batas_bawah IS NULL', null, false)
+			->or_where('batas_bawah <=', $nilai)
+		->group_end();
+		
+		// Handle batas_atas: NULL berarti ≥ batas_bawah saja
+		$this->db->group_start()
+			->where('batas_atas IS NULL', null, false)
+			->or_where('batas_atas >=', $nilai)
+		->group_end();
+		
+		return $this->db->get($this->table)->row();
 	}
 
 	/**

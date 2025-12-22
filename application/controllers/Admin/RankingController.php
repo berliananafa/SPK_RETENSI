@@ -14,6 +14,9 @@ class RankingController extends Admin_Controller
 		$this->load->library('ProfileMatching');
 	}
 
+	/* ======================================================
+	 * INDEX - Tampilkan Hasil Ranking
+	 * ====================================================== */
 	public function index()
 	{
 		set_page_title('Hasil Ranking');
@@ -25,54 +28,51 @@ class RankingController extends Admin_Controller
 		enable_datatables();
 		enable_charts();
 
-		// Ambil filter dari query string
+		// Get filters
 		$periode = $this->input->get('periode') ?? date('Y-m');
 		$idTim = $this->input->get('tim');
 		$idProduk = $this->input->get('produk');
 
 		// Build filter
 		$filter = ['periode' => $periode];
-		if (!empty($idTim)) {
-			$filter['id_tim'] = $idTim;
-		}
+		if ($idTim) $filter['id_tim'] = $idTim;
+		if ($idProduk) $filter['id_produk'] = $idProduk;
 
-		if (!empty($idProduk)) {
-			$filter['id_produk'] = $idProduk;
-		}
-
-		// Ambil data dan hitung ranking
+		// Get data & calculate ranking
 		$penilaian = $this->NilaiModel->getAllWithDetails($filter);
 		$rankings = $this->profilematching->hitungRanking($penilaian, $periode);
 
-		$data = [
+		render_layout('admin/ranking/index', [
 			'rankings' => $rankings,
 			'filter_periode' => $periode,
 			'filter_tim' => $idTim,
+			'filter_produk' => $idProduk,
 			'tim' => $this->TimModel->all(),
 			'produk' => $this->ProdukModel->all()
-		];
-
-		render_layout('admin/ranking/index', $data);
+		]);
 	}
 
-	/**
-	 * Proses dan simpan ranking ke database
-	 */
+	/* ======================================================
+	 * PROCESS - Proses dan Simpan Ranking ke Database
+	 * ====================================================== */
 	public function process()
 	{
 		// Validasi input
-		if (!$this->validasiInput()) {
+		$this->load->library('form_validation');
+		$this->form_validation->set_rules('periode', 'Periode', 'required');
+
+		if ($this->form_validation->run() === FALSE) {
+			$this->session->set_flashdata('error', validation_errors());
+			redirect('admin/ranking');
 			return;
 		}
 
 		$periode = $this->input->post('periode', true);
 		$idTim = $this->input->post('tim') ?: null;
 
-		// Ambil data penilaian
+		// Get data
 		$filter = ['periode' => $periode];
-		if (!empty($idTim)) {
-			$filter['id_tim'] = $idTim;
-		}
+		if ($idTim) $filter['id_tim'] = $idTim;
 
 		$penilaian = $this->NilaiModel->getAllWithDetails($filter);
 
@@ -82,7 +82,7 @@ class RankingController extends Admin_Controller
 			return;
 		}
 
-		// Hitung ranking dan konversi
+		// Calculate ranking + konversi
 		$result = $this->profilematching->hitungRanking($penilaian, $periode, true);
 
 		if (empty($result['rankings'])) {
@@ -91,154 +91,119 @@ class RankingController extends Admin_Controller
 			return;
 		}
 
-		// Simpan ke database dengan transaction
-		if ($this->simpanHasilRanking($result, $periode, $idTim)) {
-			$this->session->set_flashdata('success', 'Ranking berhasil diproses dan disimpan.');
-		} else {
-			$this->session->set_flashdata('error', 'Gagal menyimpan ranking. Silakan coba lagi.');
-		}
-
-		redirect('admin/ranking?periode=' . $periode);
-	}
-
-	/**
-	 * Validasi input form
-	 */
-	private function validasiInput()
-	{
-		$this->load->library('form_validation');
-		$this->form_validation->set_rules('periode', 'Periode', 'required');
-
-		if ($this->form_validation->run() === FALSE) {
-			$this->session->set_flashdata('error', validation_errors());
-			redirect('admin/ranking');
-			return false;
-		}
-
-		return true;
-	}
-
-	/**
-	 * Simpan hasil ranking ke database
-	 */
-	private function simpanHasilRanking($result, $periode, $idTim = null)
-	{
+		// Save to database
 		$this->db->trans_start();
 
-		// 1. Simpan data konversi
-		$this->simpanDataKonversi($result['konversi']);
-
-		// 2. Hapus ranking lama
-		$this->hapusRankingLama($periode, $idTim);
-
-		// 3. Simpan ranking baru
-		$this->simpanRankingBaru($result['rankings'], $periode);
-
-		$this->db->trans_complete();
-
-		return $this->db->trans_status();
-	}
-
-	/**
-	 * Simpan data konversi
-	 */
-	private function simpanDataKonversi($dataKonversi)
-	{
-		if (empty($dataKonversi)) {
-			return;
-		}
-
-		// Hapus konversi lama untuk CS yang terkait
-		$affectedCs = array_unique(array_column($dataKonversi, 'id_cs'));
-		foreach ($affectedCs as $csId) {
-			$this->db->where('id_cs', $csId)->delete('konversi');
-		}
-
-		// Validasi id_range
-		$dataKonversi = $this->validasiIdRange($dataKonversi);
-
-		// Insert data konversi baru
-		if (method_exists($this->KonversiModel, 'bulkCreate')) {
-			$this->KonversiModel->bulkCreate($dataKonversi);
-		} else {
-			$this->db->insert_batch('konversi', $dataKonversi);
-		}
-	}
-
-	/**
-	 * Validasi id_range agar tidak error foreign key
-	 */
-	private function validasiIdRange($dataKonversi)
-	{
-		$allRangeIds = array_filter(array_unique(array_column($dataKonversi, 'id_range')));
-
-		if (empty($allRangeIds)) {
-			return $dataKonversi;
-		}
-
-		// Ambil id_range yang valid dari database
-		$existingIds = $this->db
-			->select('id_range')
-			->from('range')
-			->where_in('id_range', $allRangeIds)
-			->get()
-			->result_array();
-
-		$validIds = array_column($existingIds, 'id_range');
-
-		// Set id_range = null jika tidak valid
-		foreach ($dataKonversi as &$item) {
-			if (!empty($item['id_range']) && !in_array($item['id_range'], $validIds)) {
-				$item['id_range'] = null;
+		// 1. Save konversi
+		if (!empty($result['konversi'])) {
+			$csIds = array_unique(array_column($result['konversi'], 'id_cs'));
+			$this->db->where_in('id_cs', $csIds)->delete('konversi');
+			
+			// Normalize data structure - ensure all records have same keys
+			$cleanKonversi = [];
+			foreach ($result['konversi'] as $item) {
+				// Skip records without valid id_range (FK constraint)
+				if (empty($item['id_range'])) {
+					continue;
+				}
+				
+				// Ensure consistent structure with explicit type casting
+				$cleanKonversi[] = [
+					'id_cs'           => (int) $item['id_cs'],
+					'id_sub_kriteria' => (int) $item['id_sub_kriteria'],
+					'id_range'        => (int) $item['id_range'],
+					'nilai_asli'      => (float) $item['nilai_asli'],
+					'nilai_konversi'  => (float) $item['nilai_konversi'],
+				];
+			}
+			
+			if (!empty($cleanKonversi)) {
+				$this->db->insert_batch('konversi', $cleanKonversi);
 			}
 		}
 
-		return $dataKonversi;
-	}
-
-	/**
-	 * Hapus ranking lama
-	 */
-	private function hapusRankingLama($periode, $idTim = null)
-	{
-		if (method_exists($this->RankingModel, 'deleteByPeriode')) {
-			$this->RankingModel->deleteByPeriode($periode, $idTim);
-		} else {
-			$this->db->where('periode', $periode)->delete('ranking');
+		// 2. Delete old ranking
+		$this->db->where('periode', $periode);
+		if ($idTim) {
+			$csIds = $this->db->select('id_cs')->from('customer_service')
+				->where('id_tim', $idTim)->get()->result_array();
+			if (!empty($csIds)) {
+				$this->db->where_in('id_cs', array_column($csIds, 'id_cs'));
+			}
 		}
-	}
+		$this->db->delete('ranking');
 
-	/**
-	 * Simpan ranking baru
-	 */
-	private function simpanRankingBaru($rankings, $periode)
-	{
+		// 3. Insert new ranking
 		$bulkData = [];
 		$now = date('Y-m-d H:i:s');
-
-		foreach ($rankings as $ranking) {
+		foreach ($result['rankings'] as $r) {
 			$bulkData[] = [
-				'id_cs' => $ranking->id_cs,
-				'id_produk' => $ranking->id_produk ?? null,
-				'nilai_akhir' => $ranking->skor_akhir,
-				'peringkat' => $ranking->peringkat,
+				'id_cs' => $r->id_cs,
+				'id_produk' => $r->id_produk ?? null,
+				'nilai_akhir' => $r->skor_akhir,
+				'peringkat' => $r->peringkat,
 				'periode' => $periode,
 				'status' => 'published',
 				'created_at' => $now,
 				'updated_at' => $now,
 			];
 		}
+		$this->db->insert_batch('ranking', $bulkData);
 
-		if (method_exists($this->RankingModel, 'bulkCreate')) {
-			$this->RankingModel->bulkCreate($bulkData);
+		$this->db->trans_complete();
+
+		// Show result
+		if ($this->db->trans_status()) {
+			$this->session->set_flashdata('success', 'Ranking berhasil diproses dan disimpan.');
 		} else {
-			$this->db->insert_batch('ranking', $bulkData);
+			$this->session->set_flashdata('error', 'Gagal menyimpan ranking.');
 		}
+
+		redirect('admin/ranking?periode=' . $periode);
 	}
 
-	/**
-	 * Detail ranking untuk modal AJAX
-	 */
+	/* ======================================================
+	 * EXPORT - Export Ranking ke Excel
+	 * ====================================================== */
+	public function export()
+	{
+		// Get filters - sama seperti index
+		$periode = $this->input->get('periode') ?? date('Y-m');
+		$idTim = $this->input->get('tim');
+		$idProduk = $this->input->get('produk');
+
+		// Build filter
+		$filter = ['periode' => $periode];
+		if ($idTim) $filter['id_tim'] = $idTim;
+		if ($idProduk) $filter['id_produk'] = $idProduk;
+
+		// Get data & calculate ranking
+		$penilaian = $this->NilaiModel->getAllWithDetails($filter);
+		$rankings = $this->profilematching->hitungRanking($penilaian, $periode);
+
+		if (empty($rankings)) {
+			$this->session->set_flashdata('error', 'Tidak ada data ranking untuk periode ini.');
+			redirect('admin/ranking');
+			return;
+		}
+
+		// Prepare filter info untuk Excel
+		$filterInfo = [];
+		if ($idTim) {
+			$timInfo = $this->TimModel->find($idTim);
+			$filterInfo['tim'] = $timInfo->nama_tim ?? '-';
+		}
+		if ($idProduk) {
+			$produkInfo = $this->ProdukModel->find($idProduk);
+			$filterInfo['produk'] = $produkInfo->nama_produk ?? '-';
+		}
+
+		// Load library & export
+		$this->load->library('ExportLaporan');
+		$this->exportlaporan->exportRanking($rankings, $periode, $filterInfo);
+	}
+
+	
 	public function detail()
 	{
 		$idCs = $this->input->get('id');
@@ -249,7 +214,7 @@ class RankingController extends Admin_Controller
 			return;
 		}
 
-		// Ambil data nilai CS
+		// Get nilai data
 		$nilaiAll = $this->NilaiModel->getByCustomerService($idCs);
 		$nilai = array_filter($nilaiAll, fn($r) => ($r->periode ?? '') == $periode);
 
@@ -258,64 +223,26 @@ class RankingController extends Admin_Controller
 			return;
 		}
 
-		// Hitung detail breakdown
-		$detail = $this->hitungDetailCS($nilai);
-
-		// Fetch CS and team/product/leader details
-		$this->load->model('CustomerServiceModel');
-		$csInfo = $this->CustomerServiceModel->getByIdWithDetails($idCs);
-
-		$namaLeader = null;
-		if (!empty($csInfo->id_tim)) {
-			$this->load->model('TimModel');
-			$timInfo = $this->TimModel->getByIdWithDetails($csInfo->id_tim);
-			$namaLeader = $timInfo->nama_leader ?? null;
-		}
-
-		$data = array_merge($detail, [
-			'periode' => $periode,
-			'id_cs' => $idCs,
-			'cs' => (object)[
-				'nama_cs' => $csInfo->nama_cs ?? ($nilaiAll ? reset($nilaiAll)->nama_cs : '-'),
-				'nik' => $csInfo->nik ?? ($nilaiAll ? reset($nilaiAll)->nik : '-'),
-				'nama_tim' => $csInfo->nama_tim ?? ($nilaiAll ? reset($nilaiAll)->nama_tim : null),
-				'nama_produk' => $csInfo->nama_produk ?? null,
-				'nama_leader' => $namaLeader,
-			],
-		]);
-
-		$this->load->view('admin/ranking/detail', $data);
-	}
-
-	/**
-	 * Hitung detail breakdown per CS
-	 */
-	private function hitungDetailCS($dataNilai)
-	{
+		// Calculate detail
 		$rows = [];
-		$totalCF = $bobotCF = $totalSF = $bobotSF = 0;
+		$totalCF = $totalSF = 0;
+		$itemCF = 0;  // Jumlah item Core Factor
+		$itemSF = 0;  // Jumlah item Secondary Factor
 
-		foreach ($dataNilai as $row) {
-			$nilaiAktual = (float)$row->nilai;
-			$nilaiTarget = (float)($row->target ?? 0);
-			$bobot = (float)($row->bobot_kriteria ?? 0);
-
-			// Hitung nilai konversi
-			$konversi = $this->profilematching->hitungNilaiKonversi(
-				$row->id_sub_kriteria,
-				$nilaiAktual,
-				$nilaiTarget
-			);
-
+		foreach ($nilai as $row) {
+			$nilaiAktual = (float) $row->nilai;
+			$bobotSub = (float) ($row->bobot_sub ?? 0);
+			
+			$gap = $this->profilematching->hitungGap($row->id_sub_kriteria, $nilaiAktual);
 			$jenis = strtolower(trim($row->jenis_kriteria ?? ''));
 
-			// Akumulasi berdasarkan jenis
+			// Accumulate - hanya nilai gap, tanpa dikalikan bobot
 			if ($jenis === 'core_factor') {
-				$totalCF += $konversi['nilai_konversi'] * $bobot;
-				$bobotCF += $bobot;
+				$totalCF += $gap['gap'];
+				$itemCF++;
 			} else {
-				$totalSF += $konversi['nilai_konversi'] * $bobot;
-				$bobotSF += $bobot;
+				$totalSF += $gap['gap'];
+				$itemSF++;
 			}
 
 			$rows[] = [
@@ -323,23 +250,46 @@ class RankingController extends Admin_Controller
 				'nama_kriteria' => $row->nama_kriteria ?? '-',
 				'nama_sub' => $row->nama_sub_kriteria ?? '-',
 				'nilai_asli' => $nilaiAktual,
-				'target' => $nilaiTarget,
-				'gap' => $nilaiTarget - $nilaiAktual,
-				'nilai_konversi' => $konversi['nilai_konversi'],
-				'bobot' => $bobot,
+				'nilai_gap' => $gap['gap'],
+				'bobot_sub' => $bobotSub,
 				'jenis' => $jenis,
 			];
 		}
 
-		$ncf = $bobotCF > 0 ? ($totalCF / $bobotCF) : 0;
-		$nsf = $bobotSF > 0 ? ($totalSF / $bobotSF) : 0;
-		$skorAkhir = ($ncf * 0.6) + ($nsf * 0.4);
+		// Calculate scores - rata-rata nilai gap
+		$ncf = $itemCF > 0 ? ($totalCF / $itemCF) : 0;
+		$nsf = $itemSF > 0 ? ($totalSF / $itemSF) : 0;
+		$skorAkhir = ($ncf * 0.9) + ($nsf * 0.1);
 
-		return [
+		// Get CS info
+		$this->load->model('CustomerServiceModel');
+		$csInfo = $this->CustomerServiceModel->getByIdWithDetails($idCs);
+
+		$namaLeader = null;
+		if (!empty($csInfo->id_tim)) {
+			$timInfo = $this->TimModel->getByIdWithDetails($csInfo->id_tim);
+			$namaLeader = $timInfo->nama_leader ?? null;
+		}
+
+		// Render view
+		$this->load->view('admin/ranking/detail', [
 			'rows' => $rows,
-			'ncf' => $ncf,
-			'nsf' => $nsf,
-			'skor' => $skorAkhir,
-		];
+			'ncf' => round($ncf, 4),
+			'nsf' => round($nsf, 4),
+			'skor' => round($skorAkhir, 6),
+			'total_cf' => $totalCF,
+			'item_cf' => $itemCF,
+			'total_sf' => $totalSF,
+			'item_sf' => $itemSF,
+			'periode' => $periode,
+			'id_cs' => $idCs,
+			'cs' => (object)[
+				'nama_cs' => $csInfo->nama_cs ?? ($nilaiAll ? reset($nilaiAll)->nama_cs : '-'),
+				'nik' => $csInfo->nik ?? ($nilaiAll ? reset($nilaiAll)->nik : '-'),
+				'nama_tim' => $csInfo->nama_tim ?? null,
+				'nama_produk' => $csInfo->nama_produk ?? null,
+				'nama_leader' => $namaLeader,
+			],
+		]);
 	}
 }

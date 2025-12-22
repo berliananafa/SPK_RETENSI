@@ -27,8 +27,6 @@ class NilaiTemplate
         $this->_createMainSheet($spreadsheet->getActiveSheet(), $subKriteriaList);
         
         $spreadsheet->createSheet();
-        $this->_createGuideSheet($spreadsheet->getSheet(1), $subKriteriaList);
-        
         $this->_outputFile($spreadsheet);
     }
 
@@ -125,82 +123,6 @@ class NilaiTemplate
             
             $row++;
         }
-    }
-
-    private function _createGuideSheet($sheet, $subKriteriaList)
-    {
-        $sheet->setTitle('Panduan');
-        
-        $row = 1;
-        
-        $sheet->setCellValue("A{$row}", 'PANDUAN PENGISIAN TEMPLATE PENILAIAN CS');
-        $sheet->getStyle("A{$row}")->getFont()->setBold(true)->setSize(14);
-        $row += 2;
-        
-        $sheet->setCellValue("A{$row}", 'KOLOM YANG HARUS DIISI:');
-        $sheet->getStyle("A{$row}")->getFont()->setBold(true);
-        $row++;
-        
-        $sheet->setCellValue("A{$row}", '1. NIK CS (WAJIB)');
-        $row++;
-        $sheet->setCellValue("A{$row}", '   Nomor Induk Karyawan, harus terdaftar di sistem');
-        $row++;
-        $sheet->setCellValue("A{$row}", '   Contoh: 202301001, EMP001');
-        $row += 2;
-        
-        $sheet->setCellValue("A{$row}", '2. Nama CS (OPSIONAL)');
-        $row++;
-        $sheet->setCellValue("A{$row}", '   Untuk verifikasi data');
-        $row += 2;
-        
-        $sheet->setCellValue("A{$row}", 'SUB KRITERIA PENILAIAN (WAJIB):');
-        $sheet->getStyle("A{$row}")->getFont()->setBold(true);
-        $row++;
-        
-        $no = 3;
-        $currentKriteria = '';
-        
-        foreach ($subKriteriaList as $sk) {
-            if ($currentKriteria != $sk->nama_kriteria) {
-                $sheet->setCellValue("A{$row}", "");
-                $row++;
-                $sheet->setCellValue("A{$row}", "Kriteria: {$sk->nama_kriteria}");
-                $sheet->getStyle("A{$row}")->getFont()->setBold(true);
-                $row++;
-                $currentKriteria = $sk->nama_kriteria;
-            }
-            
-            $sheet->setCellValue("A{$row}", "{$no}. {$sk->nama_sub_kriteria}");
-            $row++;
-            $sheet->setCellValue("A{$row}", "   Bobot: {$sk->bobot_sub}% | Target: {$sk->target}");
-            $row++;
-            $no++;
-        }
-        
-        $row++;
-        $sheet->setCellValue("A{$row}", "{$no}. Produk, Leader, Tim, SPV (OPSIONAL)");
-        $row++;
-        $sheet->setCellValue("A{$row}", '   Hanya untuk referensi, tidak diproses');
-        $row += 2;
-        
-        $sheet->setCellValue("A{$row}", 'CATATAN PENTING:');
-        $sheet->getStyle("A{$row}")->getFont()->setBold(true);
-        $row++;
-        
-        $notes = [
-            '• NIK CS harus sudah terdaftar di sistem',
-            '• Urutan kolom harus sesuai template',
-            '• Nilai berupa angka, bisa desimal (85.5)',
-            '• Nilai 0 atau kosong akan dilewati',
-            '• Gunakan "Replace Existing" untuk update data'
-        ];
-        
-        foreach ($notes as $note) {
-            $sheet->setCellValue("A{$row}", $note);
-            $row++;
-        }
-        
-        $sheet->getColumnDimension('A')->setWidth(80);
     }
 
     private function _getColumnLetter($index)

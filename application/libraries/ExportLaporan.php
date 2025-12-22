@@ -47,9 +47,6 @@ class ExportLaporan
         
         // Sheet 3: Bottom Performers  
         $this->createBottomPerformersSheet($spreadsheet, $bottom);
-        
-        // Sheet 4: Per Kriteria
-        $this->createKriteriaSheet($spreadsheet, $kriteria);
 
         // Set active sheet ke Summary
         $spreadsheet->setActiveSheetIndex(0);
@@ -88,7 +85,7 @@ class ExportLaporan
         // Info metode
         $row = 3;
         $sheet->setCellValue('A' . $row, 'Metode:');
-        $sheet->setCellValue('B' . $row, 'Profile Matching (NCF 60% + NSF 40%)');
+        $sheet->setCellValue('B' . $row, 'Profile Matching (NCF 90% + NSF 10%)');
         $sheet->getStyle('A' . $row)->getFont()->setBold(true);
 
         $row = 5;
@@ -266,69 +263,6 @@ class ExportLaporan
     }
 
     /**
-     * Sheet 4: Per Kriteria dengan chart-like visualization
-     */
-    private function createKriteriaSheet($spreadsheet, $kriteria)
-    {
-        $sheet = $spreadsheet->createSheet();
-        $sheet->setTitle('Per Kriteria');
-
-        // Header
-        $sheet->setCellValue('A1', 'PERFORMA PER KRITERIA');
-        $sheet->mergeCells('A1:C1');
-        $this->styleHeader($sheet, 'A1:C1', '4472C4');
-
-        // Column headers
-        $row = 3;
-        $sheet->setCellValue('A' . $row, 'Kriteria');
-        $sheet->setCellValue('B' . $row, 'Rata-rata');
-        $sheet->setCellValue('C' . $row, 'Visualisasi');
-        $this->styleTableHeader($sheet, 'A' . $row . ':C' . $row);
-
-        // Data
-        $labels = $kriteria['labels'] ?? [];
-        $data = $kriteria['data'] ?? [];
-
-        $row++;
-        for ($i = 0; $i < count($labels); $i++) {
-            $nilai = $data[$i] ?? 0;
-            
-            $sheet->setCellValue('A' . $row, $labels[$i]);
-            $sheet->setCellValue('B' . $row, $nilai);
-            
-            // Visual bar (using repeated characters)
-            $barLength = (int)(($nilai / 100) * 20);
-            $bar = str_repeat('█', $barLength);
-            $sheet->setCellValue('C' . $row, $bar . ' ' . number_format($nilai, 1) . '%');
-
-            // Color based on value
-            $color = $this->getScoreColor($nilai);
-            $sheet->getStyle('B' . $row)->applyFromArray([
-                'fill' => [
-                    'fillType' => Fill::FILL_SOLID,
-                    'startColor' => ['argb' => $color]
-                ],
-                'font' => ['bold' => true]
-            ]);
-
-            // Format number
-            $sheet->getStyle('B' . $row)->getNumberFormat()
-                ->setFormatCode('#,##0.00');
-
-            $row++;
-        }
-
-        // Borders
-        $lastRow = $row - 1;
-        $this->applyTableBorders($sheet, 'A3:C' . $lastRow);
-
-        // Auto width
-        $sheet->getColumnDimension('A')->setWidth(30);
-        $sheet->getColumnDimension('B')->setWidth(15);
-        $sheet->getColumnDimension('C')->setWidth(35);
-    }
-
-    /**
      * Style untuk header utama
      */
     private function styleHeader($sheet, $range, $color = '4472C4')
@@ -437,5 +371,199 @@ class ExportLaporan
         if ($score >= 70) return 'FF4472C4'; // Blue
         if ($score >= 50) return 'FFFFC000'; // Yellow
         return 'FFE74C3C'; // Red
+    }
+
+    /**
+     * Export Ranking CS to Excel
+     * @param array $rankings - Data ranking CS
+     * @param string $periode - Periode format Y-m
+     * @param array $filterInfo - Info filter (tim, produk)
+     * @param string $filename - Nama file output (optional)
+     */
+    public function exportRanking($rankings, $periode, $filterInfo = [], $filename = null)
+    {
+        if (empty($rankings)) {
+            return false;
+        }
+
+        $spreadsheet = new Spreadsheet();
+        $sheet = $spreadsheet->getActiveSheet();
+        $sheet->setTitle('Ranking CS');
+
+        // Set metadata
+        $spreadsheet->getProperties()
+            ->setCreator("SPK Retensi System")
+            ->setTitle("Ranking Customer Service")
+            ->setSubject("Profile Matching Ranking")
+            ->setDescription("Hasil ranking customer service periode " . $periode);
+
+        // Header title
+        $sheet->setCellValue('A1', 'HASIL RANKING CUSTOMER SERVICE');
+        $sheet->mergeCells('A1:I1');
+        $sheet->getStyle('A1')->applyFromArray([
+            'font' => [
+                'bold' => true,
+                'size' => 16,
+                'color' => ['argb' => 'FFFFFFFF']
+            ],
+            'alignment' => [
+                'horizontal' => Alignment::HORIZONTAL_CENTER,
+                'vertical' => Alignment::VERTICAL_CENTER
+            ],
+            'fill' => [
+                'fillType' => Fill::FILL_SOLID,
+                'startColor' => ['argb' => 'FF4472C4']
+            ]
+        ]);
+        $sheet->getRowDimension(1)->setRowHeight(30);
+
+        // Info periode
+        $sheet->setCellValue('A2', 'Periode:');
+        $sheet->setCellValue('B2', date('F Y', strtotime($periode . '-01')));
+        $sheet->getStyle('A2')->getFont()->setBold(true);
+        
+        // Filter info
+        $row = 3;
+        if (!empty($filterInfo['tim'])) {
+            $sheet->setCellValue('A' . $row, 'Tim:');
+            $sheet->setCellValue('B' . $row, $filterInfo['tim']);
+            $sheet->getStyle('A' . $row)->getFont()->setBold(true);
+            $row++;
+        }
+        if (!empty($filterInfo['produk'])) {
+            $sheet->setCellValue('A' . $row, 'Produk:');
+            $sheet->setCellValue('B' . $row, $filterInfo['produk']);
+            $sheet->getStyle('A' . $row)->getFont()->setBold(true);
+            $row++;
+        }
+        
+        $sheet->setCellValue('A' . $row, 'Tanggal Export:');
+        $sheet->setCellValue('B' . $row, date('d/m/Y H:i:s'));
+        $sheet->getStyle('A' . $row)->getFont()->setBold(true);
+
+        // Column headers - sesuai struktur tabel
+        $headerRow = $row + 2;
+        $headers = ['Rank', 'NIK', 'Nama CS', 'Produk', 'Tim', 'Leader', 'NCF (90%)', 'NSF (10%)', 'Skor Akhir'];
+        $col = 'A';
+        foreach ($headers as $header) {
+            $sheet->setCellValue($col . $headerRow, $header);
+            $col++;
+        }
+
+        // Style header kolom
+        $sheet->getStyle('A' . $headerRow . ':I' . $headerRow)->applyFromArray([
+            'font' => [
+                'bold' => true,
+                'color' => ['argb' => 'FFFFFFFF']
+            ],
+            'alignment' => [
+                'horizontal' => Alignment::HORIZONTAL_CENTER,
+                'vertical' => Alignment::VERTICAL_CENTER
+            ],
+            'fill' => [
+                'fillType' => Fill::FILL_SOLID,
+                'startColor' => ['argb' => 'FF70AD47']
+            ],
+            'borders' => [
+                'allBorders' => [
+                    'borderStyle' => Border::BORDER_THIN,
+                    'color' => ['argb' => 'FF000000']
+                ]
+            ]
+        ]);
+
+        // Data rows
+        $dataRow = $headerRow + 1;
+        foreach ($rankings as $index => $rank) {
+            $peringkat = $index + 1;
+            
+            $sheet->setCellValue('A' . $dataRow, $peringkat);
+            $sheet->setCellValue('B' . $dataRow, $rank->nik ?? '-');
+            $sheet->setCellValue('C' . $dataRow, $rank->nama_cs ?? '-');
+            $sheet->setCellValue('D' . $dataRow, $rank->nama_produk ?? '-');
+            $sheet->setCellValue('E' . $dataRow, $rank->nama_tim ?? '-');
+            $sheet->setCellValue('F' . $dataRow, $rank->nama_leader ?? '-');
+            $sheet->setCellValue('G' . $dataRow, $rank->ncf ?? 0);
+            $sheet->setCellValue('H' . $dataRow, $rank->nsf ?? 0);
+            $sheet->setCellValue('I' . $dataRow, $rank->skor_akhir ?? 0);
+
+            // Format angka dengan 2 desimal
+            $sheet->getStyle('G' . $dataRow)->getNumberFormat()->setFormatCode('#,##0.00');
+            $sheet->getStyle('H' . $dataRow)->getNumberFormat()->setFormatCode('#,##0.00');
+            $sheet->getStyle('I' . $dataRow)->getNumberFormat()->setFormatCode('#,##0.00');
+
+            // Highlight top 3
+            if ($peringkat === 1) {
+                $sheet->getStyle('A' . $dataRow . ':I' . $dataRow)->applyFromArray([
+                    'fill' => [
+                        'fillType' => Fill::FILL_SOLID,
+                        'startColor' => ['argb' => 'FFFFD700'] // Gold
+                    ],
+                    'font' => ['bold' => true]
+                ]);
+            } elseif ($peringkat === 2) {
+                $sheet->getStyle('A' . $dataRow . ':I' . $dataRow)->applyFromArray([
+                    'fill' => [
+                        'fillType' => Fill::FILL_SOLID,
+                        'startColor' => ['argb' => 'FFC0C0C0'] // Silver
+                    ],
+                    'font' => ['bold' => true]
+                ]);
+            } elseif ($peringkat === 3) {
+                $sheet->getStyle('A' . $dataRow . ':I' . $dataRow)->applyFromArray([
+                    'fill' => [
+                        'fillType' => Fill::FILL_SOLID,
+                        'startColor' => ['argb' => 'FFCD7F32'] // Bronze
+                    ],
+                    'font' => ['bold' => true]
+                ]);
+            }
+
+            // Border untuk semua data
+            $sheet->getStyle('A' . $dataRow . ':I' . $dataRow)->applyFromArray([
+                'borders' => [
+                    'allBorders' => [
+                        'borderStyle' => Border::BORDER_THIN,
+                        'color' => ['argb' => 'FF000000']
+                    ]
+                ]
+            ]);
+
+            // Center alignment untuk rank dan angka
+            $sheet->getStyle('A' . $dataRow)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+            $sheet->getStyle('G' . $dataRow . ':I' . $dataRow)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_RIGHT);
+
+            $dataRow++;
+        }
+
+        // Auto-size columns
+        foreach (range('A', 'I') as $col) {
+            $sheet->getColumnDimension($col)->setAutoSize(true);
+        }
+
+        // Freeze pane (header tetap terlihat saat scroll)
+        $sheet->freezePane('A' . ($headerRow + 1));
+
+        // Generate filename
+        if (empty($filename)) {
+            $filename = 'Ranking_CS_' . $periode;
+            if (!empty($filterInfo['tim'])) $filename .= '_Tim';
+            if (!empty($filterInfo['produk'])) $filename .= '_Produk';
+            $filename .= '_' . date('YmdHis') . '.xlsx';
+        }
+
+        // Output file
+        header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+        header('Content-Disposition: attachment; filename="' . $filename . '"');
+        header('Cache-Control: max-age=0');
+        header('Cache-Control: max-age=1');
+        header('Expires: Mon, 26 Jul 1997 05:00:00 GMT');
+        header('Last-Modified: ' . gmdate('D, d M Y H:i:s') . ' GMT');
+        header('Cache-Control: cache, must-revalidate');
+        header('Pragma: public');
+
+        $writer = new Xlsx($spreadsheet);
+        $writer->save('php://output');
+        exit;
     }
 }

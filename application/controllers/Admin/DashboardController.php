@@ -51,7 +51,7 @@ class DashboardController extends Admin_Controller
                 ->join('tim t', 'cs.id_tim = t.id_tim', 'left')
                 ->where('r.periode', $currentPeriode)
                 ->order_by('r.nilai_akhir', 'DESC')
-                ->limit(10)
+                ->limit(5)
                 ->get()
                 ->result();
         } else {

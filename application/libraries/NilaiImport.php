@@ -158,9 +158,17 @@ class NilaiImport
         $nilaiDataArray = [];
         foreach ($subKriteriaList as $namaSubKriteria => $info) {
             $columnIndex = $info['column_index'];
-            $nilai = floatval($row[$columnIndex] ?? 0);
+            $cellValue = $row[$columnIndex] ?? null;
             
-            if ($nilai > 0) {
+            // Skip jika cell kosong/null, tapi TERIMA nilai 0
+            if ($cellValue === null || $cellValue === '') {
+                continue;
+            }
+            
+            $nilai = floatval($cellValue);
+            
+            // Terima nilai >= 0 (termasuk 0 untuk absensi/keterlambatan)
+            if ($nilai >= 0) {
                 $nilaiDataArray[] = [
                     'id_cs' => $cs->id_cs,
                     'id_sub_kriteria' => $info['id_sub_kriteria'],

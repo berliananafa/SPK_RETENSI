@@ -27,12 +27,12 @@
 						<select class="form-control" id="filterKriteria">
 							<option value="">-- Semua Kriteria --</option>
 							<?php if (!empty($kriteria)): ?>
-							<?php foreach ($kriteria as $krt): ?>
-							<option value="<?= $krt->id_kriteria ?>"
-								<?= ($filter_kriteria == $krt->id_kriteria) ? 'selected' : '' ?>>
-								<?= $krt->kode_kriteria . ' - ' . $krt->nama_kriteria ?>
-							</option>
-							<?php endforeach; ?>
+								<?php foreach ($kriteria as $krt): ?>
+									<option value="<?= $krt->id_kriteria ?>"
+										<?= ($filter_kriteria == $krt->id_kriteria) ? 'selected' : '' ?>>
+										<?= $krt->kode_kriteria . ' - ' . $krt->nama_kriteria ?>
+									</option>
+								<?php endforeach; ?>
 							<?php endif; ?>
 						</select>
 					</div>
@@ -41,11 +41,11 @@
 						<select class="form-control" id="filterTim">
 							<option value="">-- Semua Tim --</option>
 							<?php if (!empty($tim)): ?>
-							<?php foreach ($tim as $t): ?>
-							<option value="<?= $t->id_tim ?>" <?= ($filter_tim == $t->id_tim) ? 'selected' : '' ?>>
-								<?= $t->nama_tim ?>
-							</option>
-							<?php endforeach; ?>
+								<?php foreach ($tim as $t): ?>
+									<option value="<?= $t->id_tim ?>" <?= ($filter_tim == $t->id_tim) ? 'selected' : '' ?>>
+										<?= $t->nama_tim ?>
+									</option>
+								<?php endforeach; ?>
 							<?php endif; ?>
 						</select>
 					</div>
@@ -79,7 +79,7 @@
 						<div class="card border-left-info shadow-sm">
 							<div class="card-body py-3">
 								<small class="text-muted">Rata-rata Nilai</small>
-								<h4 class="mb-0"><?= number_format($rata_rata, 2) ?></h4>
+								<h4 class="mb-0"><?= number_format($rata_rata, 2, ',', '.') ?></h4>
 							</div>
 						</div>
 					</div>
@@ -95,7 +95,7 @@
 
 				<!-- Data Table -->
 				<div class="table-responsive">
-					<table id="dataTable-1" class="table table-hover table-bordered">
+					<table id="dataTable-1" class="table table-hover ">
 						<thead class="thead-light">
 							<tr>
 								<th width="5%">No</th>
@@ -111,61 +111,69 @@
 						</thead>
 						<tbody>
 							<?php if (!empty($penilaian)): ?>
-							<?php foreach ($penilaian as $index => $nilai): ?>
-							<tr>
-								<td><?= $index + 1 ?></td>
-								<td>
-									<span class="badge badge-primary"><?= $nilai->nik ?? '-' ?></span>
-								</td>
-								<td>
-									<div class="d-flex align-items-center">
-										<strong><?= htmlspecialchars($nilai->nama_cs) ?></strong>
-									</div>
-								</td>
-								<td><?= $nilai->nama_produk ?></td>
-								<td>
-									<span class="badge badge-info"><?= $nilai->kode_kriteria ?></span>
-									<?= $nilai->nama_kriteria ?>
-								</td>
-								<td><?= $nilai->nama_sub_kriteria ?></td>
-								<td>
-									<span class="badge badge-success badge-lg">
-										<?= number_format($nilai->nilai, 2) ?>
-									</span>
-								</td>
-								<td>
-									<small>
-										<?php if (!empty($nilai->periode) && preg_match('/^\d{4}-\d{2}$/', $nilai->periode)): ?>
-										<?php
-					{              			$bulan_map = [
-												'01' => 'Januari', '02' => 'Februari', '03' => 'Maret', '04' => 'April',
-												'05' => 'Mei', '06' => 'Juni', '07' => 'Juli', '08' => 'Agustus',
-												'09' => 'September', '10' => 'Oktober', '11' => 'November', '12' => 'Desember'
-											];
-											list($yy, $mm) = explode('-', $nilai->periode);
-											echo (isset($bulan_map[$mm]) ? $bulan_map[$mm] : $mm) . ' ' . $yy;}
-                                        ?>
-										<?php else: ?>
-										<?= $nilai->periode ?? '-' ?>
-										<?php endif; ?>
-									</small>
-								</td>
-								<td class="text-center">
-									<a href="<?= base_url('admin/nilai/delete/' . $nilai->id_nilai) ?>"
-										class="btn btn-sm btn-danger btn-delete" data-title="Hapus Penilaian?"
-										data-text="Data akan dihapus permanen!" title="Hapus">
-										<i class="fe fe-trash-2"></i>
-									</a>
-								</td>
-							</tr>
-							<?php endforeach; ?>
+								<?php foreach ($penilaian as $index => $nilai): ?>
+									<tr>
+										<td><?= $index + 1 ?></td>
+										<td>
+											<span class="badge badge-primary"><?= $nilai->nik ?? '-' ?></span>
+										</td>
+										<td>
+											<div class="d-flex align-items-center">
+												<strong><?= htmlspecialchars($nilai->nama_cs) ?></strong>
+											</div>
+										</td>
+										<td><?= $nilai->nama_produk ?></td>
+										<td>
+											<span class="badge badge-info"><?= $nilai->kode_kriteria ?></span>
+											<?= $nilai->nama_kriteria ?>
+										</td>
+										<td><?= $nilai->nama_sub_kriteria ?></td>
+										<td>
+											<strong><?= number_format($nilai->nilai, 0, ',', '.') ?></strong>
+										</td>
+										<td>
+											<small>
+												<?php if (!empty($nilai->periode) && preg_match('/^\d{4}-\d{2}$/', $nilai->periode)): ?>
+													<?php {
+														$bulan_map = [
+															'01' => 'Januari',
+															'02' => 'Februari',
+															'03' => 'Maret',
+															'04' => 'April',
+															'05' => 'Mei',
+															'06' => 'Juni',
+															'07' => 'Juli',
+															'08' => 'Agustus',
+															'09' => 'September',
+															'10' => 'Oktober',
+															'11' => 'November',
+															'12' => 'Desember'
+														];
+														list($yy, $mm) = explode('-', $nilai->periode);
+														echo (isset($bulan_map[$mm]) ? $bulan_map[$mm] : $mm) . ' ' . $yy;
+													}
+													?>
+												<?php else: ?>
+													<?= $nilai->periode ?? '-' ?>
+												<?php endif; ?>
+											</small>
+										</td>
+										<td class="text-center">
+											<a href="<?= base_url('admin/nilai/delete/' . $nilai->id_nilai) ?>"
+												class="btn btn-sm btn-danger btn-delete" data-title="Hapus Penilaian?"
+												data-text="Data akan dihapus permanen!" title="Hapus">
+												<i class="fe fe-trash-2"></i>
+											</a>
+										</td>
+									</tr>
+								<?php endforeach; ?>
 							<?php else: ?>
-							<tr>
-								<td colspan="8" class="text-center text-muted py-4">
-									<i class="fe fe-inbox fe-24"></i>
-									<p>Belum ada data penilaian</p>
-								</td>
-							</tr>
+								<tr>
+									<td colspan="8" class="text-center text-muted py-4">
+										<i class="fe fe-inbox fe-24"></i>
+										<p>Belum ada data penilaian</p>
+									</td>
+								</tr>
 							<?php endif; ?>
 						</tbody>
 					</table>
@@ -195,7 +203,6 @@ ob_start();
 	.border-left-warning {
 		border-left: 4px solid #f6c23e !important;
 	}
-
 </style>
 <?php
 add_css(ob_get_clean());
@@ -203,15 +210,14 @@ add_css(ob_get_clean());
 ob_start();
 ?>
 <script>
-	$(document).ready(function () {
+	$(document).ready(function() {
 		// Filter button click
-		$('#btnFilter').on('click', function () {
+		$('#btnFilter').on('click', function() {
 			var periode = $('#filterPeriode').val();
 			var kriteria = $('#filterKriteria').val();
 			var tim = $('#filterTim').val();
 
-			var url = '<?= base_url('
-			admin / nilai ') ?>?';
+			var url = `<?= base_url('admin/nilai') ?>` + '?';
 			var params = [];
 
 			if (periode) params.push('periode=' + periode);
@@ -221,7 +227,6 @@ ob_start();
 			window.location.href = url + params.join('&');
 		});
 	});
-
 </script>
 <?php
 add_js(ob_get_clean());

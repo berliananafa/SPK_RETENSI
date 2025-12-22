@@ -10,7 +10,7 @@
 				<div class="alert alert-info mb-4">
 					<strong><i class="fe fe-info"></i> Metode Profile Matching</strong><br>
 					<small>Penilaian berdasarkan selisih (GAP) nilai aktual dengan target,
-						dengan pembobotan NCF (Core Factor 60%) dan NSF (Secondary Factor 40%).</small>
+						dengan pembobotan NCF (Core Factor 90%) dan NSF (Secondary Factor 10%).</small>
 				</div>
 
 				<!-- Filter Section -->

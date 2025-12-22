@@ -6,14 +6,24 @@
 				<i class="fas fa-user-circle me-2"></i>
 				<?= htmlspecialchars($cs->nama_cs ?? '-') ?>
 			</h5>
-			<div class="text-muted small">
-				<span class="badge bg-secondary me-2">
+			<div class="text-muted">
+				<span class="badge bg-light text-dark border me-2">
 					<i class="fas fa-id-card me-1"></i>
 					<?= htmlspecialchars($cs->nik ?? '-') ?>
 				</span>
-				<span class="badge bg-info">
+				<span class="badge bg-light text-primary border">
 					<i class="far fa-calendar-alt me-1"></i>
-					<?= htmlspecialchars($periode) ?>
+					<?php
+					if (!empty($periode)) {
+						$timestamp = strtotime($periode . '-01');
+						$bulan = ['', 'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
+						$bulanNama = $bulan[(int)date('n', $timestamp)];
+						$tahun = date('Y', $timestamp);
+						echo "$bulanNama $tahun";
+					} else {
+						echo '-';
+					}
+					?>
 				</span>
 			</div>
 		</div>
@@ -71,9 +81,12 @@
 						<i class="fas fa-star fa-lg"></i>
 					</div>
 					<div class="small text-muted mb-1">NCF (Core Factor)</div>
-					<h4 class="mb-0 text-danger fw-bold"><?= number_format($ncf, 2) ?></h4>
+					<h4 class="mb-0 text-danger fw-bold"><?= number_format($ncf, 2, ',', '.') ?></h4>
 					<div class="progress mt-2" style="height: 4px;">
 						<div class="progress-bar bg-danger" style="width: <?= ($ncf / 5) * 100 ?>%"></div>
+					</div>
+					<div class="small text-muted mt-2">
+						Total: <?= number_format($total_cf, 0, ',', '.') ?> / Item: <?= $item_cf ?>
 					</div>
 				</div>
 			</div>
@@ -85,9 +98,12 @@
 						<i class="fas fa-certificate fa-lg"></i>
 					</div>
 					<div class="small text-muted mb-1">NSF (Secondary Factor)</div>
-					<h4 class="mb-0 text-primary fw-bold"><?= number_format($nsf, 2) ?></h4>
+					<h4 class="mb-0 text-primary fw-bold"><?= number_format($nsf, 2, ',', '.') ?></h4>
 					<div class="progress mt-2" style="height: 4px;">
 						<div class="progress-bar bg-primary" style="width: <?= ($nsf / 5) * 100 ?>%"></div>
+					</div>
+					<div class="small text-muted mt-2">
+						Total: <?= number_format($total_sf, 0, ',', '.') ?> / Item: <?= $item_sf ?>
 					</div>
 				</div>
 			</div>
@@ -99,7 +115,7 @@
 						<i class="fas fa-trophy fa-lg"></i>
 					</div>
 					<div class="small text-muted mb-1">Skor Akhir</div>
-					<h4 class="mb-0 text-success fw-bold"><?= number_format($skor, 2) ?></h4>
+					<h4 class="mb-0 text-success fw-bold"><?= number_format($skor, 2, ',', '.') ?></h4>
 					<div class="progress mt-2" style="height: 4px;">
 						<div class="progress-bar bg-success" style="width: <?= ($skor / 5) * 100 ?>%"></div>
 					</div>
@@ -109,11 +125,12 @@
 	</div>
 
 	<!-- Formula Info -->
-	<div class="alert alert-info mt-3 mb-0 py-2">
+	<div class="alert alert-info alert-dismissible fade show mt-3 mb-0 py-2" role="alert">
 		<small>
 			<i class="fas fa-info-circle me-1"></i>
-			<strong>Formula:</strong> Skor Akhir = (NCF × 60%) + (NSF × 40%) = (<?= number_format($ncf, 2) ?> × 0.6)
-			+ (<?= number_format($nsf, 2) ?> × 0.4) = <strong><?= number_format($skor, 2) ?></strong>
+			<strong>Formula:</strong> NCF = <?= number_format($total_cf, 0, ',', '.') ?> / <?= $item_cf ?> = <?= number_format($ncf, 0, ',', '.') ?> |
+			NSF = <?= number_format($total_sf, 0, ',', '.') ?> / <?= $item_sf ?> = <?= number_format($nsf, 0, ',', '.') ?> |
+			Skor = (<?= number_format($ncf, 0, ',', '.') ?> × 0,9) + (<?= number_format($nsf, 0, ',', '.') ?> × 0,1) = <strong><?= number_format($skor, 2, ',', '.') ?></strong>
 		</small>
 	</div>
 </div>
@@ -129,14 +146,11 @@
 		<table class="table table-sm table-hover table-bordered mb-0">
 			<thead>
 				<tr>
-					<th width="8%" class="text-center">Kode</th>
+					<th width="10%" class="text-center">Kode</th>
 					<th>Sub Kriteria</th>
-					<th width="9%" class="text-center">Nilai</th>
-					<th width="9%" class="text-center">Target</th>
-					<th width="9%" class="text-center">Gap</th>
-					<th width="11%" class="text-center">Konversi</th>
-					<th width="9%" class="text-center">Bobot</th>
-					<th width="9%" class="text-center">Factor</th>
+					<th width="15%" class="text-center">Nilai Asli</th>
+					<th width="15%" class="text-center">Nilai Gap</th>
+					<th width="12%" class="text-center">Jenis</th>
 				</tr>
 			</thead>
 			<tbody>
@@ -147,8 +161,8 @@
 				if (!empty($cfRows)):
 				?>
 					<tr class="table-danger">
-						<td colspan="8" class="fw-bold py-2">
-							<i class="fas fa-star me-2"></i>Core Factor (CF)
+						<td colspan="5" class="fw-bold py-2">
+							<i class="fas fa-star me-2"></i>Core Factor (CF) - Total: <?= number_format($total_cf, 2, ',', '.') ?> / <?= $item_cf ?> Item = <?= number_format($ncf, 2, ',', '.') ?>
 						</td>
 					</tr>
 					<?php foreach ($cfRows as $r): ?>
@@ -160,23 +174,10 @@
 								<strong><?= htmlspecialchars($r['nama_sub'] ?? '-') ?></strong>
 								<div class="small text-muted"><?= htmlspecialchars($r['nama_kriteria'] ?? '-') ?></div>
 							</td>
-							<td class="text-center"><?= number_format($r['nilai_asli'], 2) ?></td>
-							<td class="text-center"><?= number_format($r['target'], 2) ?></td>
+							<td class="text-center"><?= number_format($r['nilai_asli'], 0, ',', '.') ?></td>
+							<td class="text-center"><strong class="text-danger"><?= number_format($r['nilai_gap'], 0, ',', '.') ?></strong></td>
 							<td class="text-center">
-								<span
-									class="<?= $r['gap'] == 0 ? 'text-success' : ($r['gap'] > 0 ? 'text-warning' : 'text-muted') ?>">
-									<?= number_format($r['gap'], 2) ?>
-								</span>
-							</td>
-							<td class="text-center">
-								<strong class="text-danger"><?= number_format($r['nilai_konversi'], 2) ?></strong>
-								<?php if (!empty($r['id_range'])): ?>
-									<div class="small text-muted">(R-<?= htmlspecialchars($r['id_range']) ?>)</div>
-								<?php endif; ?>
-							</td>
-							<td class="text-center"><?= number_format($r['bobot'], 2) ?></td>
-							<td class="text-center">
-								<small class="text-danger">CF</small>
+								<strong class="text-danger">CF</strong>
 							</td>
 						</tr>
 					<?php endforeach; ?>
@@ -184,8 +185,8 @@
 
 				<?php if (!empty($sfRows)): ?>
 					<tr class="table-primary">
-						<td colspan="8" class="fw-bold py-2">
-							<i class="fas fa-certificate me-2"></i>Secondary Factor (SF)
+						<td colspan="5" class="fw-bold py-2">
+							<i class="fas fa-certificate me-2"></i>Secondary Factor (SF) - Total: <?= number_format($total_sf, 2, ',', '.') ?> / <?= $item_sf ?> Item = <?= number_format($nsf, 2, ',', '.') ?>
 						</td>
 					</tr>
 					<?php foreach ($sfRows as $r): ?>
@@ -197,23 +198,10 @@
 								<strong><?= htmlspecialchars($r['nama_sub'] ?? '-') ?></strong>
 								<div class="small text-muted"><?= htmlspecialchars($r['nama_kriteria'] ?? '-') ?></div>
 							</td>
-							<td class="text-center"><?= number_format($r['nilai_asli'], 2) ?></td>
-							<td class="text-center"><?= number_format($r['target'], 2) ?></td>
+							<td class="text-center"><?= number_format($r['nilai_asli'], 0, ',', '.') ?></td>
+							<td class="text-center"><strong class="text-primary"><?= number_format($r['nilai_gap'], 0, ',', '.') ?></strong></td>
 							<td class="text-center">
-								<span
-									class="<?= $r['gap'] == 0 ? 'text-success' : ($r['gap'] > 0 ? 'text-warning' : 'text-muted') ?>">
-									<?= number_format($r['gap'], 2) ?>
-								</span>
-							</td>
-							<td class="text-center">
-								<strong class="text-primary"><?= number_format($r['nilai_konversi'], 2) ?></strong>
-								<?php if (!empty($r['id_range'])): ?>
-									<div class="small text-muted">(R-<?= htmlspecialchars($r['id_range']) ?>)</div>
-								<?php endif; ?>
-							</td>
-							<td class="text-center"><?= number_format($r['bobot'], 2) ?></td>
-							<td class="text-center">
-								<small class="text-primary">SF</small>
+								<strong class="text-primary">SF</strong>
 							</td>
 						</tr>
 					<?php endforeach; ?>

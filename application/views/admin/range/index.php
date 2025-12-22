@@ -43,7 +43,7 @@
 					</div>
 				</div>
 
-				<table id="dataTable-1" class="table table-hover table-borderless">
+				<table id="dataTable-1" class="table table-hover table-striped">
 					<thead>
 						<tr>
 							<th width="5%">No</th>

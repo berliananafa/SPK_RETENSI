@@ -60,7 +60,7 @@
 
 				<!-- Action Buttons -->
 				<div class="mb-3">
-					<a href="<?= base_url('admin/ranking/export') ?>" class="btn btn-success btn-sm">
+					<a href="<?= base_url('admin/ranking/export') ?>?periode=<?= urlencode($filter_periode) ?><?= $filter_tim ? '&tim=' . urlencode($filter_tim) : '' ?><?= $filter_produk ? '&produk=' . urlencode($filter_produk) : '' ?>" class="btn btn-success btn-sm" id="btnExport">
 						<i class="fe fe-download"></i> Export Excel
 					</a>
 					<button class="btn btn-info btn-sm" onclick="window.location.reload()">
@@ -87,9 +87,9 @@
 										</span>
 									</div>
 									<h6 class="mb-1 font-weight-bold"><?= $rankings[1]->nama_cs ?></h6>
-									<small class="text-muted d-block mb-2"><?= $rankings[1]->nik ?></small>
+									<small class="text-muted d-block mb-2">NIK: <?= $rankings[1]->nik ?></small>
 									<h4 class="text-secondary mb-0 font-weight-bold">
-										<?= number_format($rankings[1]->skor_akhir, 2) ?></h4>
+										<?= number_format($rankings[1]->skor_akhir, 2, ',', '.') ?></h4>
 								</div>
 							</div>
 						</div>
@@ -104,9 +104,9 @@
 										</span>
 									</div>
 									<h5 class="mb-1 font-weight-bold text-warning"><?= $rankings[0]->nama_cs ?></h5>
-									<small class="text-muted d-block mb-2"><?= $rankings[0]->nik ?></small>
+									<small class="text-muted d-block mb-2">NIK: <?= $rankings[0]->nik ?></small>
 									<h3 class="text-warning mb-0 font-weight-bold">
-										<?= number_format($rankings[0]->skor_akhir, 2) ?></h3>
+										<?= number_format($rankings[0]->skor_akhir, 2, ',', '.') ?></h3>
 								</div>
 							</div>
 						</div>
@@ -121,9 +121,9 @@
 										</span>
 									</div>
 									<h6 class="mb-1 font-weight-bold"><?= $rankings[2]->nama_cs ?></h6>
-									<small class="text-muted d-block mb-2"><?= $rankings[2]->nik ?></small>
+									<small class="text-muted d-block mb-2">NIK: <?= $rankings[2]->nik ?></small>
 									<h4 class="text-danger mb-0 font-weight-bold">
-										<?= number_format($rankings[2]->skor_akhir, 2) ?></h4>
+										<?= number_format($rankings[2]->skor_akhir, 2, ',', '.') ?></h4>
 								</div>
 							</div>
 						</div>
@@ -132,7 +132,7 @@
 
 				<!-- Full Ranking Table -->
 				<div class="table-responsive">
-					<table id="dataTable-1" class="table table-hover table-borderless">
+					<table id="dataTable-1" class="table table-hover table-striped	">
 						<thead>
 							<tr>
 								<th width="5%">Rank</th>
@@ -141,8 +141,8 @@
 								<th>Produk</th>
 								<th>Tim</th>
 								<th>Leader</th>
-								<th>NCF (60%)</th>
-								<th>NSF (40%)</th>
+								<th>NCF (90%)</th>
+								<th>NSF (10%)</th>
 								<th>Skor Akhir</th>
 								<th width="10%" class="text-center">Aksi</th>
 							</tr>
@@ -181,8 +181,8 @@
 										<td>
 											<small><?= htmlspecialchars($rank->nama_leader ?? '-') ?></small>
 										</td>
-										<td><small class="text-danger"><?= number_format($rank->ncf ?? 0, 2) ?></small></td>
-										<td><small class="text-primary"><?= number_format($rank->nsf ?? 0, 2) ?></small></td>
+									<td><small class="text-danger"><?= number_format($rank->ncf ?? 0, 2, ',', '.') ?></small></td>
+									<td><small class="text-primary"><?= number_format($rank->nsf ?? 0, 2, ',', '.') ?></small></td>
 										<td>
 											<div class="progress" style="height: 25px;">
 												<?php
@@ -192,7 +192,7 @@
 												<div class="progress-bar bg-success" role="progressbar"
 													style="width: <?= $percentage ?>%;" aria-valuenow="<?= $percentage ?>"
 													aria-valuemin="0" aria-valuemax="100">
-													<strong><?= number_format($rank->skor_akhir, 2) ?></strong>
+											<strong><?= number_format($rank->skor_akhir, 2, ',', '.') ?></strong>
 												</div>
 											</div>
 										</td>
@@ -359,15 +359,37 @@ ob_start();
 		// Clear Filter button handler
 		$('#btnClearFilter').on('click', function(e) {
 			e.preventDefault();
-			
+
 			// Reset form inputs to default
 			$('#filterPeriode').val('<?= date('Y-m') ?>');
 			$('#filterTim').val('');
 			$('#filterProduk').val('');
-			
+
 			// Redirect to base URL without query params
 			window.location.href = '<?= base_url('admin/ranking') ?>';
 		});
+
+		// Update export link when filters change
+		function updateExportLink() {
+			var periode = $('#filterPeriode').val();
+			var tim = $('#filterTim').val();
+			var produk = $('#filterProduk').val();
+
+			var params = {};
+			if (periode) params.periode = periode;
+			if (tim) params.tim = tim;
+			if (produk) params.produk = produk;
+
+			var query = $.param(params);
+			var exportUrl = '<?= base_url('admin/ranking/export') ?>' + (query ? ('?' + query) : '');
+			$('#btnExport').attr('href', exportUrl);
+		}
+
+		// Update export link on filter change
+		$('#filterPeriode, #filterTim, #filterProduk').on('change', updateExportLink);
+		
+		// Initial update
+		updateExportLink();
 	});
 </script>
 <?php
