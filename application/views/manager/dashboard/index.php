@@ -1,13 +1,13 @@
-<!-- Dashboard Junior Manager -->
-<div class="row mb-4">
-    <!-- Statistics Cards -->
+<!-- Summary Cards Row -->
+<div class="row mb-2">
+    <!-- Total Supervisor Card -->
     <div class="col-md-6 col-xl-3 mb-4">
         <div class="card shadow border-0 border-left-primary" style="border-left: 4px solid #4e73df !important;">
             <div class="card-body">
                 <div class="row align-items-center">
                     <div class="col">
                         <span class="h6 font-weight-bold text-muted text-uppercase d-block mb-2">Total Supervisor</span>
-                        <span class="h3 font-weight-bold mb-0 text-primary"><?= number_format($total_supervisor) ?></span>
+                        <span class="h3 font-weight-bold mb-0 text-primary"><?= number_format($total_supervisor ?? 0) ?></span>
                     </div>
                     <div class="col-auto">
                         <span class="h2 fe fe-user-check text-primary mb-0" style="opacity: 0.2;"></span>
@@ -17,45 +17,48 @@
         </div>
     </div>
 
+    <!-- Total CS Card -->
     <div class="col-md-6 col-xl-3 mb-4">
         <div class="card shadow border-0 border-left-success" style="border-left: 4px solid #1cc88a !important;">
             <div class="card-body">
                 <div class="row align-items-center">
                     <div class="col">
-                        <span class="h6 font-weight-bold text-muted text-uppercase d-block mb-2">Total Tim</span>
-                        <span class="h3 font-weight-bold mb-0 text-success"><?= number_format($total_tim) ?></span>
+                        <span class="h6 font-weight-bold text-muted text-uppercase d-block mb-2">Customer Service</span>
+                        <span class="h3 font-weight-bold mb-0 text-success"><?= number_format($total_cs ?? 0) ?></span>
                     </div>
                     <div class="col-auto">
-                        <span class="h2 fe fe-users text-success mb-0" style="opacity: 0.2;"></span>
+                        <span class="h2 fe fe-user text-success mb-0" style="opacity: 0.2;"></span>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 
+    <!-- Total Kriteria Card -->
     <div class="col-md-6 col-xl-3 mb-4">
         <div class="card shadow border-0 border-left-info" style="border-left: 4px solid #36b9cc !important;">
             <div class="card-body">
                 <div class="row align-items-center">
                     <div class="col">
-                        <span class="h6 font-weight-bold text-muted text-uppercase d-block mb-2">Customer Service</span>
-                        <span class="h3 font-weight-bold mb-0 text-info"><?= number_format($total_cs) ?></span>
+                        <span class="h6 font-weight-bold text-muted text-uppercase d-block mb-2">Kriteria</span>
+                        <span class="h3 font-weight-bold mb-0 text-info"><?= number_format($total_criteria ?? 0) ?></span>
                     </div>
                     <div class="col-auto">
-                        <span class="h2 fe fe-user text-info mb-0" style="opacity: 0.2;"></span>
+                        <span class="h2 fe fe-list text-info mb-0" style="opacity: 0.2;"></span>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 
+    <!-- Total Rankings Card -->
     <div class="col-md-6 col-xl-3 mb-4">
         <div class="card shadow border-0 border-left-warning" style="border-left: 4px solid #f6c23e !important;">
             <div class="card-body">
                 <div class="row align-items-center">
                     <div class="col">
                         <span class="h6 font-weight-bold text-muted text-uppercase d-block mb-2">Total Penilaian</span>
-                        <span class="h3 font-weight-bold mb-0 text-warning"><?= number_format($total_penilaian) ?></span>
+                        <span class="h3 font-weight-bold mb-0 text-warning"><?= number_format($total_penilaian ?? 0) ?></span>
                     </div>
                     <div class="col-auto">
                         <span class="h2 fe fe-edit text-warning mb-0" style="opacity: 0.2;"></span>
@@ -66,198 +69,205 @@
     </div>
 </div>
 
-<!-- Supervisor List -->
-<div class="row">
-    <div class="col-md-12 col-lg-6 mb-4">
-        <div class="card shadow border-0">
-            <div class="card-header bg-gradient-primary text-white">
-                <strong class="card-title mb-0">Daftar Supervisor</strong>
-                <span class="small ml-2" style="opacity: 0.9;">Supervisor yang berada di bawah tanggung jawab Anda</span>
-            </div>
+<!-- Additional Cards Row -->
+<div class="row mb-4">
+    <!-- Total Tim Card -->
+    <div class="col-md-6 col-xl-6 mb-4">
+        <div class="card shadow border-0 border-left-danger" style="border-left: 4px solid #e74a3b !important;">
             <div class="card-body">
-                <?php if (!empty($supervisors)): ?>
-                    <div class="row">
-                        <?php foreach (array_slice($supervisors, 0, 4) as $supervisor): ?>
-                            <div class="col-12 mb-3">
-                                <div class="card border-0" style="border-left: 3px solid #36b9cc !important;">
-                                    <div class="card-body p-3">
-                                        <div class="row align-items-center">
-                                            <div class="col-auto">
-                                                <div class="avatar avatar-md" style="width: 48px; height: 48px;">
-                                                    <img src="https://ui-avatars.com/api/?name=<?= urlencode($supervisor->nama_pengguna) ?>&background=00cfe8&color=fff&size=48" 
-                                                         alt="<?= htmlspecialchars($supervisor->nama_pengguna) ?>"
-                                                         class="avatar-img rounded-circle">
-                                                </div>
-                                            </div>
-                                            <div class="col">
-                                                <small><strong><?= htmlspecialchars($supervisor->nama_pengguna) ?></strong></small>
-                                                <div class="my-0 text-muted small">
-                                                    <i class="fe fe-tag mr-1"></i><?= htmlspecialchars($supervisor->nik) ?>
-                                                </div>
-                                            </div>
-                                            <div class="col-auto text-right">
-                                                <span class="badge badge-soft-primary d-block mb-1"><?= $supervisor->total_tim ?> Tim</span>
-                                                <span class="badge badge-soft-info d-block"><?= $supervisor->total_cs ?> CS</span>
-                                            </div>
-                                            <div class="col-auto">
-                                                <a href="<?= base_url('junior-manager/supervisor/detail/' . $supervisor->id_user) ?>" 
-                                                   class="btn btn-sm btn-primary">
-                                                    <i class="fe fe-eye"></i>
-                                                </a>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        <?php endforeach; ?>
+                <div class="row align-items-center">
+                    <div class="col">
+                        <span class="h6 font-weight-bold text-muted text-uppercase d-block mb-2">Total Tim</span>
+                        <span class="h3 font-weight-bold mb-0 text-danger"><?= number_format($total_teams ?? 0) ?></span>
                     </div>
-                    <div class="text-center mt-2">
-                        <a href="<?= base_url('junior-manager/supervisor') ?>" class="btn btn-outline-primary btn-sm">
-                            <i class="fe fe-eye"></i> Lihat Semua Supervisor
-                        </a>
+                    <div class="col-auto">
+                        <span class="h2 fe fe-users text-danger mb-0" style="opacity: 0.2;"></span>
                     </div>
-                <?php else: ?>
-                    <div class="text-center py-5">
-                        <span class="fe fe-user-x fe-64 mb-3 d-block" style="color: #4e73df; opacity: 0.3;"></span>
-                        <h5 class="text-muted">Belum Ada Data Supervisor</h5>
-                        <p class="text-muted">Supervisor akan ditampilkan di sini setelah ditambahkan</p>
-                    </div>
-                <?php endif; ?>
+                </div>
             </div>
         </div>
     </div>
 
-    <!-- CS Performance Statistics -->
-    <div class="col-md-12 col-lg-6 mb-4">
-        <div class="card shadow border-0">
-            <div class="card-header bg-gradient-primary text-white">
-                <strong class="card-title mb-0">Top 10 Performa CS</strong>
-                <span class="small ml-2" style="opacity: 0.9;">Berdasarkan rata-rata nilai penilaian</span>
-            </div>
+    <!-- Total Ranking Card -->
+    <div class="col-md-6 col-xl-6 mb-4">
+        <div class="card shadow border-0" style="border-left: 4px solid #5a5c69 !important;">
             <div class="card-body">
-                <?php if (!empty($cs_performance)): ?>
-                    <div class="table-responsive">
-                        <table class="table table-sm table-hover">
-                            <thead >
-                                <tr>
-                                    <th>#</th>
-                                    <th>CS</th>
-                                    <th>Tim</th>
-                                    <th>Penilaian</th>
-                                    <th>Rata-rata</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <?php foreach ($cs_performance as $index => $cs): ?>
-                                    <?php 
-                                        $avgScore = floatval($cs->rata_rata_nilai);
-                                        $performanceClass = $avgScore >= 4 ? 'success' : ($avgScore >= 3 ? 'info' : 'secondary');
-                                    ?>
-                                    <tr>
-                                        <td>
-                                            <span class="badge badge-<?= $performanceClass ?>">#<?= $index + 1 ?></span>
-                                        </td>
-                                        <td>
-                                            <div class="row align-items-center">
-                                                <div class="col-auto">
-                                                    <div class="avatar avatar-xs" style="width: 28px; height: 28px;">
-                                                        <img src="https://ui-avatars.com/api/?name=<?= urlencode($cs->nama_cs) ?>&background=<?= $performanceClass == 'success' ? '1cc88a' : ($performanceClass == 'info' ? '36b9cc' : '858796') ?>&color=fff&size=28" 
-                                                             alt="<?= htmlspecialchars($cs->nama_cs) ?>"
-                                                             class="avatar-img rounded-circle">
-                                                    </div>
-                                                </div>
-                                                <div class="col pl-0">
-                                                    <small><strong><?= htmlspecialchars($cs->nama_cs) ?></strong></small>
-                                                    <div class="my-0 text-muted" style="font-size: 10px;"><?= htmlspecialchars($cs->nik) ?></div>
-                                                </div>
-                                            </div>
-                                        </td>
-                                        <td>
-                                            <small class="text-muted"><?= htmlspecialchars($cs->nama_tim) ?></small>
-                                        </td>
-                                        <td>
-                                            <span class="badge badge-light"><?= $cs->total_penilaian ?>x</span>
-                                        </td>
-                                        <td>
-                                            <span class="badge badge-<?= $performanceClass ?>"><?= number_format($avgScore, 2) ?></span>
-                                        </td>
-                                    </tr>
-                                <?php endforeach; ?>
-                            </tbody>
-                        </table>
+                <div class="row align-items-center">
+                    <div class="col">
+                        <span class="h6 font-weight-bold text-muted text-uppercase d-block mb-2">Total Ranking</span>
+                        <span class="h3 font-weight-bold mb-0" style="color: #5a5c69;"><?= number_format($total_rankings ?? 0) ?></span>
                     </div>
-                <?php else: ?>
-                    <div class="text-center py-5">
-                        <span class="fe fe-bar-chart fe-64 mb-3 d-block" style="color: #4e73df; opacity: 0.3;"></span>
-                        <h5 class="text-muted">Belum Ada Data Performa</h5>
-                        <p class="text-muted">Data performa CS akan ditampilkan setelah ada penilaian</p>
+                    <div class="col-auto">
+                        <span class="h2 fe fe-award mb-0" style="opacity: 0.2; color: #5a5c69;"></span>
                     </div>
-                <?php endif; ?>
+                </div>
             </div>
         </div>
     </div>
 </div>
 
-<!-- Recent Evaluations -->
+<!-- Main Content Row -->
 <div class="row">
-    <div class="col-12">
-        <div class="card shadow border-0">
-            <div class="card-header bg-gradient-primary text-white">
-                <strong class="card-title mb-0">Penilaian Terbaru</strong>
-                <span class="small ml-2" style="opacity: 0.9;">10 penilaian terakhir dari tim Anda</span>
+    <!-- Quick Actions -->
+    <div class="col-lg-4 mb-4">
+        <div class="card shadow">
+            <div class="card-header text-white">
+                <strong><i class="fe fe-zap"></i> Menu Cepat</strong>
             </div>
-            <div class="card-body">
-                <?php if (!empty($recent_nilai)): ?>
+            <div class="list-group list-group-flush">
+                <a href="<?= base_url('junior-manager/supervisor') ?>" class="list-group-item list-group-item-action d-flex align-items-center">
+                    <i class="fe fe-users text-primary mr-3 fe-20"></i>
+                    <div>
+                        <strong>Daftar Supervisor</strong>
+                        <div class="small text-muted">Lihat supervisor Anda</div>
+                    </div>
+                </a>
+                <a href="<?= base_url('junior-manager/tim') ?>" class="list-group-item list-group-item-action d-flex align-items-center">
+                    <i class="fe fe-users text-success mr-3 fe-20"></i>
+                    <div>
+                        <strong>Daftar Tim</strong>
+                        <div class="small text-muted">Lihat semua tim</div>
+                    </div>
+                </a>
+                <a href="<?= base_url('junior-manager/customer-service') ?>" class="list-group-item list-group-item-action d-flex align-items-center">
+                    <i class="fe fe-user text-info mr-3 fe-20"></i>
+                    <div>
+                        <strong>Daftar CS</strong>
+                        <div class="small text-muted">Lihat customer service</div>
+                    </div>
+                </a>
+                <a href="<?= base_url('junior-manager/ranking') ?>" class="list-group-item list-group-item-action d-flex align-items-center">
+                    <i class="fe fe-trending-up text-warning mr-3 fe-20"></i>
+                    <div>
+                        <strong>Ranking CS</strong>
+                        <div class="small text-muted">Lihat peringkat CS</div>
+                    </div>
+                </a>
+                <a href="<?= base_url('junior-manager/laporan') ?>" class="list-group-item list-group-item-action d-flex align-items-center">
+                    <i class="fe fe-file-text text-danger mr-3 fe-20"></i>
+                    <div>
+                        <strong>Laporan</strong>
+                        <div class="small text-muted">Export laporan</div>
+                    </div>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Top 5 Ranking Table -->
+    <div class="col-lg-8 mb-4">
+        <div class="card shadow">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <strong><i class="fe fe-award"></i> Top 5 Customer Service Terbaik</strong>
+                <?php if (!empty($current_periode)): ?>
+                    <span class="badge badge-light">
+                        <?= date('F Y', strtotime($current_periode . '-01')) ?>
+                    </span>
+                <?php endif; ?>
+            </div>
+            <div class="card-body p-0">
+                <?php if (!empty($top_cs)): ?>
                     <div class="table-responsive">
-                        <table class="table table-sm table-hover">
-                            <thead >
+                        <table class="table table-hover mb-0">
+                            <thead class="bg-light">
                                 <tr>
-                                    <th>Customer Service</th>
-                                    <th>Kriteria</th>
-                                    <th>Nilai</th>
-                                    <th>Waktu</th>
+                                    <th width="8%" class="text-center">Rank</th>
+                                    <th width="15%">NIK</th>
+                                    <th>Nama CS</th>
+                                    <th width="20%">Tim</th>
+                                    <th width="15%" class="text-center">Skor</th>
+                                    <th width="12%" class="text-center">Status</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                <?php foreach ($recent_nilai as $nilai): ?>
+                                <?php foreach ($top_cs as $i => $cs): ?>
+                                    <?php
+                                    $badgeClass = 'primary';
+                                    $statusText = 'Baik';
+                                    $statusClass = 'info';
+
+                                    // Special styling untuk top 3
+                                    if ($i == 0) {
+                                        $badgeClass = 'warning';
+                                        $statusText = 'Excellent';
+                                        $statusClass = 'warning';
+                                    } elseif ($i == 1) {
+                                        $badgeClass = 'secondary';
+                                        $statusText = 'Sangat Baik';
+                                        $statusClass = 'success';
+                                    } elseif ($i == 2) {
+                                        $badgeClass = 'danger';
+                                        $statusText = 'Sangat Baik';
+                                        $statusClass = 'success';
+                                    }
+                                    
+                                    // Tentukan status berdasarkan nilai
+                                    if ($cs->nilai_akhir >= 4.5) {
+                                        $statusText = 'Excellent';
+                                        $statusClass = 'success';
+                                    } elseif ($cs->nilai_akhir >= 4.0) {
+                                        $statusText = 'Sangat Baik';
+                                        $statusClass = 'success';
+                                    } elseif ($cs->nilai_akhir >= 3.5) {
+                                        $statusText = 'Baik';
+                                        $statusClass = 'info';
+                                    } elseif ($cs->nilai_akhir >= 3.0) {
+                                        $statusText = 'Cukup';
+                                        $statusClass = 'warning';
+                                    } else {
+                                        $statusText = 'Kurang';
+                                        $statusClass = 'danger';
+                                    }
+                                    ?>
                                     <tr>
-                                        <td>
-                                            <div class="row align-items-center">
-                                                <div class="col-auto">
-                                                    <div class="avatar avatar-xs" style="width: 32px; height: 32px;">
-                                                        <img src="https://ui-avatars.com/api/?name=<?= urlencode($nilai->nama_cs) ?>&background=858796&color=fff&size=32" 
-                                                             alt="<?= htmlspecialchars($nilai->nama_cs) ?>"
-                                                             class="avatar-img rounded-circle">
-                                                    </div>
-                                                </div>
-                                                <div class="col pl-0">
-                                                    <small><strong><?= htmlspecialchars($nilai->nama_cs) ?></strong></small>
-                                                    <div class="my-0 text-muted small"><?= htmlspecialchars($nilai->nik) ?></div>
-                                                </div>
-                                            </div>
+                                        <td class="text-center">
+                                            <?php if ($i < 3): ?>
+                                                <span class="badge badge-<?= $badgeClass ?> badge-lg" style="font-size: 1rem; padding: 0.5rem 0.75rem;">
+                                                    <?= $i + 1 ?>
+                                                </span>
+                                            <?php else: ?>
+                                                <strong style="font-size: 1.1rem;"><?= $i + 1 ?></strong>
+                                            <?php endif; ?>
                                         </td>
                                         <td>
-                                            <small><strong><?= htmlspecialchars($nilai->nama_kriteria) ?></strong></small>
-                                            <div class="my-0 text-muted small"><?= htmlspecialchars($nilai->nama_sub_kriteria) ?></div>
+                                            <small class="text-muted"><?= htmlspecialchars($cs->nik) ?></small>
                                         </td>
                                         <td>
-                                            <span class="badge badge-success"><?= number_format($nilai->nilai, 2) ?></span>
+                                            <strong><?= htmlspecialchars($cs->nama_cs) ?></strong>
                                         </td>
                                         <td>
-                                            <small class="text-muted">
-                                                <i class="fe fe-clock mr-1"></i><?= date('d M Y H:i', strtotime($nilai->created_at)) ?>
-                                            </small>
+                                            <small class="text-muted"><?= htmlspecialchars($cs->nama_tim ?? '-') ?></small>
+                                        </td>
+                                        <td class="text-center">
+                                            <span class="badge badge-light" style="font-size: 0.95rem; padding: 0.4rem 0.8rem;">
+                                                <i class="fe fe-star text-warning"></i>
+                                                <strong><?= number_format($cs->nilai_akhir, 2, ',', '.') ?></strong>
+                                            </span>
+                                        </td>
+                                        <td class="text-center">
+                                            <span class="badge badge-<?= $statusClass ?>" style="font-size: 0.85rem; padding: 0.35rem 0.7rem;">
+                                                <?= $statusText ?>
+                                            </span>
                                         </td>
                                     </tr>
                                 <?php endforeach; ?>
                             </tbody>
                         </table>
                     </div>
+
+                    <!-- Footer dengan link -->
+                    <div class="card-footer bg-light text-center">
+                        <a href="<?= base_url('junior-manager/ranking?periode=' . ($current_periode ?? '')) ?>"
+                            class="btn btn-primary btn-sm">
+                            <i class="fe fe-arrow-right"></i> Lihat Semua Ranking
+                        </a>
+                    </div>
+
                 <?php else: ?>
                     <div class="text-center py-5">
-                        <span class="fe fe-edit fe-64 mb-3 d-block" style="color: #4e73df; opacity: 0.3;"></span>
-                        <h5 class="text-muted">Belum Ada Data Penilaian</h5>
-                        <p class="text-muted">Data penilaian akan ditampilkan di sini setelah proses evaluasi</p>
+                        <i class="fe fe-inbox fe-48 text-muted mb-3"></i>
+                        <h6 class="text-muted">Belum Ada Data Ranking</h6>
+                        <p class="text-muted small">Data ranking akan ditampilkan setelah proses penilaian selesai</p>
                     </div>
                 <?php endif; ?>
             </div>

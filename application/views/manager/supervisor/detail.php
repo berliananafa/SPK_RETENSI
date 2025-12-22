@@ -11,7 +11,7 @@
                 </div>
                 <h4 class="mb-2 font-weight-bold"><?= htmlspecialchars($supervisor->nama_pengguna) ?></h4>
                 <p class="text-muted mb-3">
-                    <span class="badge badge-primary badge-lg"><?= htmlspecialchars($supervisor->nik) ?></span>
+                    <strong>NIK: <?= htmlspecialchars($supervisor->nik) ?></strong>
                 </p>
                 
                 <!-- Contact Info -->
@@ -137,7 +137,7 @@
             <div class="card-body">
                 <?php if (!empty($cs_list)): ?>
                     <div class="table-responsive">
-                        <table class="table table-hover table-sm datatable">
+                        <table class="table table-hover table-sm  table-striped datatable" id="dataTable-1">
                             <thead >
                                 <tr>
                                     <th>No</th>

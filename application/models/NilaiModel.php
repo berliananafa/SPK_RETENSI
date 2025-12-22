@@ -349,4 +349,70 @@ class NilaiModel extends MY_Model
 			->get()
 			->row();
 	}
+
+	/**
+	 * Get distinct periodes by supervisor
+	 */
+	public function getDistinctPeriodesBySupervisor($supervisorId)
+	{
+		return $this->db->select('n.periode')
+			->from("{$this->table} n")
+			->join('customer_service cs', 'n.id_cs = cs.id_cs')
+			->join('tim t', 'cs.id_tim = t.id_tim')
+			->distinct()
+			->where('t.id_supervisor', $supervisorId)
+			->order_by('n.periode', 'DESC')
+			->get()
+			->result();
+	}
+
+	/**
+	 * Get nilai with details by supervisor (read-only for validation)
+	 */
+	public function getNilaiWithDetailsBySupervisor($supervisorId, $filter = [])
+	{
+		$this->db->select(
+			'n.id_nilai,
+			 n.periode,
+			 n.nilai,
+			 cs.id_cs,
+			 cs.nama_cs,
+			 cs.nik,
+			 t.id_tim,
+			 t.nama_tim,
+			 p.nama_produk,
+			 k.id_kriteria,
+			 k.nama_kriteria,
+			 k.kode_kriteria,
+			 sk.id_sub_kriteria,
+			 sk.nama_sub_kriteria'
+		)
+			->from("{$this->table} n")
+			->join('customer_service cs', 'n.id_cs = cs.id_cs')
+			->join('produk p', 'cs.id_produk = p.id_produk', 'left')
+			->join('tim t', 'cs.id_tim = t.id_tim')
+			->join('sub_kriteria sk', 'n.id_sub_kriteria = sk.id_sub_kriteria')
+			->join('kriteria k', 'sk.id_kriteria = k.id_kriteria')
+			->where('t.id_supervisor', $supervisorId);
+
+		// Apply filters
+		if (!empty($filter['periode'])) {
+			$this->db->where('n.periode', $filter['periode']);
+		}
+		if (!empty($filter['id_tim'])) {
+			$this->db->where('cs.id_tim', $filter['id_tim']);
+		}
+		if (!empty($filter['id_cs'])) {
+			$this->db->where('cs.id_cs', $filter['id_cs']);
+		}
+		if (!empty($filter['id_kriteria'])) {
+			$this->db->where('k.id_kriteria', $filter['id_kriteria']);
+		}
+
+		return $this->db->order_by('n.periode', 'DESC')
+			->order_by('cs.nama_cs', 'ASC')
+			->order_by('k.kode_kriteria', 'ASC')
+			->get()
+			->result();
+	}
 }

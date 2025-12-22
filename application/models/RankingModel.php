@@ -202,11 +202,12 @@ class RankingModel extends MY_Model
 	 */
 	public function getPeriodsByManager($managerId)
 	{
-		return $this->db->select('DISTINCT r.periode')
+		return $this->db->select('r.periode')
 			->from("{$this->table} r")
 			->join('customer_service cs', 'r.id_cs = cs.id_cs')
 			->join('tim t', 'cs.id_tim = t.id_tim')
 			->join('pengguna supervisor', 't.id_supervisor = supervisor.id_user')
+			->distinct()
 			->where('supervisor.id_atasan', $managerId)
 			->where('r.status', 'published')
 			->order_by('r.periode', 'DESC')
@@ -268,14 +269,54 @@ class RankingModel extends MY_Model
 	 */
 	public function getPeriodsBySupervisor($supervisorId)
 	{
-		return $this->db->select('DISTINCT r.periode')
+		return $this->db->select('r.periode')
 			->from("{$this->table} r")
 			->join('customer_service cs', 'r.id_cs = cs.id_cs')
 			->join('tim t', 'cs.id_tim = t.id_tim')
+			->distinct()
 			->where('t.id_supervisor', $supervisorId)
 			->where('r.status', 'published')
 			->order_by('r.periode', 'DESC')
 			->get()
 			->result();
+	}
+
+	public function countByManager($managerId)
+	{
+		$this->db->select('COUNT(DISTINCT r.id_ranking) as total');
+		$this->db->from('ranking r');
+		$this->db->join('customer_service cs', 'cs.id_cs = r.id_cs');
+		$this->db->join('tim t', 't.id_tim = cs.id_tim');
+		$this->db->join('pengguna supervisor', 'supervisor.id_user = t.id_supervisor');
+		// gunakan field id_atasan untuk konsistensi hirarki manager
+		$this->db->where('supervisor.id_atasan', $managerId);
+		$this->db->where('r.status', 'published');
+
+		$result = $this->db->get()->row();
+		return $result ? (int)$result->total : 0;
+	}
+
+	/**
+	 * Get top CS rankings filtered by manager and periode
+	 *
+	 * @param int $managerId
+	 * @param string $periode
+	 * @param int $limit
+	 * @return array
+	 */
+	public function getTopCsByManager($managerId, $periode, $limit = 5)
+	{
+		$this->db->select('r.*, cs.nama_cs, cs.nik, t.nama_tim')
+			->from("{$this->table} r")
+			->join('customer_service cs', 'r.id_cs = cs.id_cs')
+			->join('tim t', 'cs.id_tim = t.id_tim')
+			->join('pengguna supervisor', 't.id_supervisor = supervisor.id_user')
+			->where('supervisor.id_atasan', $managerId)
+			->where('r.periode', $periode)
+			->where('r.status', 'published')
+			->order_by('r.peringkat', 'ASC')
+			->limit($limit);
+
+		return $this->db->get()->result();
 	}
 }

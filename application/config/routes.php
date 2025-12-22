@@ -220,7 +220,7 @@ $route['supervisor/customer-service'] = 'supervisor/CustomerServiceController/in
 $route['supervisor/customer-service/detail/(:num)'] = 'supervisor/CustomerServiceController/detail/$1';
 
 // Monitoring & Ranking
-$route['supervisor/monitor'] = 'supervisor/MonitorController/index';
+$route['supervisor/nilai'] = 'supervisor/NilaiController/index';
 $route['supervisor/ranking'] = 'supervisor/RankingController/index';
 
 // ============================================================================

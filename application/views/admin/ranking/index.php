@@ -132,7 +132,7 @@
 
 				<!-- Full Ranking Table -->
 				<div class="table-responsive">
-					<table id="dataTable-1" class="table table-hover table-striped	">
+					<table id="dataTable-1" class="table table-hover table-striped datatables">
 						<thead>
 							<tr>
 								<th width="5%">Rank</th>
@@ -181,8 +181,8 @@
 										<td>
 											<small><?= htmlspecialchars($rank->nama_leader ?? '-') ?></small>
 										</td>
-									<td><small class="text-danger"><?= number_format($rank->ncf ?? 0, 2, ',', '.') ?></small></td>
-									<td><small class="text-primary"><?= number_format($rank->nsf ?? 0, 2, ',', '.') ?></small></td>
+										<td><small class="text-danger"><?= number_format($rank->ncf ?? 0, 2, ',', '.') ?></small></td>
+										<td><small class="text-primary"><?= number_format($rank->nsf ?? 0, 2, ',', '.') ?></small></td>
 										<td>
 											<div class="progress" style="height: 25px;">
 												<?php
@@ -192,7 +192,7 @@
 												<div class="progress-bar bg-success" role="progressbar"
 													style="width: <?= $percentage ?>%;" aria-valuenow="<?= $percentage ?>"
 													aria-valuemin="0" aria-valuemax="100">
-											<strong><?= number_format($rank->skor_akhir, 2, ',', '.') ?></strong>
+													<strong><?= number_format($rank->skor_akhir, 2, ',', '.') ?></strong>
 												</div>
 											</div>
 										</td>
@@ -387,7 +387,7 @@ ob_start();
 
 		// Update export link on filter change
 		$('#filterPeriode, #filterTim, #filterProduk').on('change', updateExportLink);
-		
+
 		// Initial update
 		updateExportLink();
 	});
