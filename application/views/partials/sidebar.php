@@ -308,7 +308,7 @@ if ($user_level === 'admin') {
 			</li>
 		</ul>
 
-		<p class="mt-4 mb-1 text-muted nav-heading"><span>Monitoring</span></p>
+		<p class="mt-4 mb-1 text-muted nav-heading"><span>Monitoring & Laporan</span></p>
 		<ul class="navbar-nav flex-fill w-100">
 			<li class="nav-item w-100 <?= (strpos($current_url, 'supervisor/nilai') !== false) ? 'active' : '' ?>">
 				<a class="nav-link" href="<?= base_url('supervisor/nilai') ?>">
@@ -320,6 +320,12 @@ if ($user_level === 'admin') {
 				<a class="nav-link" href="<?= base_url('supervisor/ranking') ?>">
 					<i class="fe fe-award"></i>
 					<span class="ml-3 item-text">Hasil Ranking</span>
+				</a>
+			</li>
+			<li class="nav-item w-100 <?= (strpos($current_url, 'supervisor/laporan') !== false) ? 'active' : '' ?>">
+				<a class="nav-link" href="<?= base_url('supervisor/laporan') ?>">
+					<i class="fe fe-file-text"></i>
+					<span class="ml-3 item-text">Laporan Performa</span>
 				</a>
 			</li>
 		</ul>

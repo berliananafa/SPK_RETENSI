@@ -223,6 +223,11 @@ $route['supervisor/customer-service/detail/(:num)'] = 'supervisor/CustomerServic
 $route['supervisor/nilai'] = 'supervisor/NilaiController/index';
 $route['supervisor/ranking'] = 'supervisor/RankingController/index';
 
+// Reports
+$route['supervisor/laporan'] = 'supervisor/LaporanController/index';
+$route['supervisor/laporan/export'] = 'supervisor/LaporanController/export_excel';
+$route['supervisor/laporan/export-excel'] = 'supervisor/LaporanController/export_excel';
+
 // ============================================================================
 // LEADER ROUTES
 // ============================================================================
