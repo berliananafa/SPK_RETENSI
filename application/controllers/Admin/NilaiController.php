@@ -63,8 +63,8 @@ class NilaiController extends Admin_Controller
 		// Ambil data penilaian beserta relasinya
 		$data['penilaian'] = $this->NilaiModel->getAllWithDetails($filter);
 
-		// Data untuk dropdown filter
-		$data['kriteria'] = $this->KriteriaModel->getAllOrdered();
+		// Data untuk dropdown filter (hanya kriteria yang approved)
+		$data['kriteria'] = $this->KriteriaModel->getAllApproved();
 		$data['tim']      = $this->TimModel->all();
 
 		// Hitung statistik dari data yang sudah difilter
@@ -120,8 +120,8 @@ class NilaiController extends Admin_Controller
 			['title' => 'Input Penilaian']
 		]);
 
-		// Ambil daftar kriteria
-		$data['kriteria'] = $this->KriteriaModel->getAllOrdered();
+		// Ambil daftar kriteria (hanya yang sudah approved)
+		$data['kriteria'] = $this->KriteriaModel->getAllApproved();
 
 		render_layout('admin/nilai/input', $data);
 	}

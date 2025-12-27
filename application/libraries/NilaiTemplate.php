@@ -32,9 +32,11 @@ class NilaiTemplate
 
     private function _getSubKriteriaList()
     {
+        // Hanya ambil sub kriteria dari kriteria yang sudah approved
         return $this->CI->db->select('sk.nama_sub_kriteria, sk.bobot_sub, sk.target, k.nama_kriteria')
                             ->from('sub_kriteria sk')
                             ->join('kriteria k', 'sk.id_kriteria = k.id_kriteria')
+                            ->where('k.status_approval', 'approved')
                             ->order_by('k.id_kriteria, sk.id_sub_kriteria', 'ASC')
                             ->get()
                             ->result();

@@ -34,13 +34,21 @@
                             <th width="5%">No</th>
                             <th>Kriteria</th>
                             <th>Nama Sub Kriteria</th>
-                            <th>Bobot (%)</th>
+                            <th width="10%">Bobot (%)</th>
+                            <th width="12%" class="text-center">Status Kriteria</th>
                             <th width="15%" class="text-center">Aksi</th>
                         </tr>
                     </thead>
                     <tbody>
                         <?php if (!empty($sub_kriteria)): ?>
                             <?php foreach ($sub_kriteria as $index => $sub): ?>
+                                <?php
+                                    $status = $sub->status_approval ?? 'pending';
+                                    $badge_class = 'secondary';
+                                    if ($status === 'approved') $badge_class = 'success';
+                                    elseif ($status === 'rejected') $badge_class = 'danger';
+                                    elseif ($status === 'pending') $badge_class = 'warning';
+                                ?>
                                 <tr data-kriteria="<?= $sub->id_kriteria ?>">
                                     <td><?= $index + 1 ?></td>
                                     <td>
@@ -56,13 +64,18 @@
                                         <strong><?= number_format($sub->bobot_sub, 0) ?>%</strong>
                                     </td>
                                     <td class="text-center">
+                                        <span class="badge badge-<?= $badge_class ?>">
+                                            <?= htmlspecialchars(ucfirst($status)) ?>
+                                        </span>
+                                    </td>
+                                    <td class="text-center">
                                         <div class="btn-group" role="group">
-                                            <a href="<?= base_url('admin/sub-kriteria/edit/' . $sub->id_sub_kriteria) ?>" 
+                                            <a href="<?= base_url('admin/sub-kriteria/edit/' . $sub->id_sub_kriteria) ?>"
                                                class="btn btn-sm btn-warning" title="Edit">
                                                 <i class="fe fe-edit"></i>
                                             </a>
-                                            <a href="<?= base_url('admin/sub-kriteria/delete/' . $sub->id_sub_kriteria) ?>" 
-                                               class="btn btn-sm btn-danger btn-delete" 
+                                            <a href="<?= base_url('admin/sub-kriteria/delete/' . $sub->id_sub_kriteria) ?>"
+                                               class="btn btn-sm btn-danger btn-delete"
                                                data-title="Hapus Sub Kriteria?"
                                                data-text="Data sub kriteria akan dihapus permanen!"
                                                title="Hapus">
@@ -74,7 +87,7 @@
                             <?php endforeach; ?>
                         <?php else: ?>
                             <tr>
-                                <td colspan="5" class="text-center text-muted py-4">
+                                <td colspan="6" class="text-center text-muted py-4">
                                     <i class="fe fe-inbox fe-24 mb-3"></i>
                                     <p>Belum ada data Sub Kriteria</p>
                                 </td>
@@ -99,10 +112,11 @@
                     <div class="col">
                         <h6 class="mb-1">Informasi Sub Kriteria</h6>
                         <p class="mb-0 text-muted small">
-                            Sub kriteria adalah penjabaran detail dari setiap kriteria utama. 
-                            <strong>Bobot Sub Kriteria</strong> merepresentasikan persentase dari <strong>total 100%</strong>. 
-                            Contoh: KPI (50%) + Rasio Target (40%) = 90% untuk kriteria Core Factor. 
-                            Pastikan total bobot sesuai dengan jenis kriteria induknya.
+                            Sub kriteria adalah penjabaran detail dari setiap kriteria utama.
+                            <strong>Bobot Sub Kriteria</strong> merepresentasikan persentase dari <strong>total 100%</strong>.
+                            Contoh: KPI (50%) + Rasio Target (40%) = 90% untuk kriteria Core Factor.
+                            Kolom <strong class="text-success">Status Kriteria</strong> menunjukkan status approval kriteria induk.
+                            Hanya sub kriteria dari kriteria yang <strong class="text-success">Approved</strong> yang dapat digunakan untuk penilaian.
                         </p>
                     </div>
                 </div>
