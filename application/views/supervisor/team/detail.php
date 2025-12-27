@@ -54,25 +54,6 @@
                         </div>
                     </div>
                 </div>
-
-                <!-- Performance Indicator -->
-                <?php 
-                    $avgPenilaian = count($cs_list) > 0 ? round($totalPenilaian / count($cs_list), 1) : 0;
-                    $performanceClass = $avgPenilaian >= 5 ? 'success' : ($avgPenilaian >= 3 ? 'info' : 'warning');
-                    $performanceLevel = $avgPenilaian >= 5 ? 'Sangat Aktif' : ($avgPenilaian >= 3 ? 'Aktif' : 'Perlu Perhatian');
-                ?>
-                <div>
-                    <h6 class="text-uppercase text-muted mb-2">Kinerja Penilaian</h6>
-                    <div class="text-center p-3 bg-light rounded">
-                        <h3 class="mb-1 text-<?= $performanceClass ?>"><?= $avgPenilaian ?></h3>
-                        <small class="text-muted">Penilaian per CS</small>
-                        <div class="progress mt-2" style="height: 8px;">
-                            <div class="progress-bar bg-<?= $performanceClass ?>" 
-                                 style="width: <?= min($avgPenilaian * 15, 100) ?>%"></div>
-                        </div>
-                        <span class="badge badge-<?= $performanceClass ?> mt-2"><?= $performanceLevel ?></span>
-                    </div>
-                </div>
             </div>
         </div>
     </div>
@@ -81,45 +62,66 @@
         <!-- CS Members List -->
         <div class="card shadow">
             <div class="card-header d-flex justify-content-between align-items-center">
-                <strong class="card-title">Anggota Customer Service</strong>
+                <div>
+                    <strong class="card-title">Anggota Customer Service</strong>
+                    <?php if (!empty($selected_periode)): ?>
+                        <span class="badge badge-soft-primary ml-2">Periode <?= htmlspecialchars($selected_periode) ?></span>
+                    <?php endif; ?>
+                </div>
                 <span class="badge badge-soft-primary badge-pill"><?= count($cs_list) ?> CS</span>
             </div>
             <div class="card-body">
                 <?php if (!empty($cs_list)): ?>
-                    <div class="row">
-                        <?php foreach ($cs_list as $cs): ?>
-                            <?php 
-                                $performanceCS = $cs->total_penilaian >= 5 ? 'success' : ($cs->total_penilaian >= 3 ? 'info' : 'secondary');
-                            ?>
-                            <div class="col-md-6 mb-3">
-                                <div class="card border h-100">
-                                    <div class="card-body p-3">
-                                        <div class="d-flex justify-content-between align-items-start mb-2">
+                    <div class="table-responsive">
+                        <table class="table table-hover table-striped" id="dataTable-1">
+                            <thead>
+                                <tr>
+                                    <th width="50">No</th>
+                                    <th>NIK</th>
+                                    <th>Nama CS</th>
+                                    <th>Produk</th>
+                                    <th>Kanal</th>
+                                    <th>Total Penilaian</th>
+                                    <th>Ranking</th>
+                                    <th width="100">Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <?php foreach ($cs_list as $index => $cs): ?>
+                                    <?php $csRanking = isset($rankings_by_cs[$cs->id_cs]) ? $rankings_by_cs[$cs->id_cs] : null; ?>
+                                    <tr>
+                                        <td><?= $index + 1 ?></td>
+                                        <td><?= htmlspecialchars($cs->nik) ?></td>
+                                        <td>
                                             <div class="d-flex align-items-center">
-                                                <div class="avatar avatar-sm mr-2" style="width: 32px; height: 32px;">
-                                                    <img src="https://ui-avatars.com/api/?name=<?= urlencode($cs->nama_cs) ?>&background=<?= $performanceCS == 'success' ? '1cc88a' : ($performanceCS == 'info' ? '36b9cc' : '858796') ?>&color=fff&size=32" 
-                                                         alt="<?= htmlspecialchars($cs->nama_cs) ?>"
-                                                         class="avatar-img rounded-circle">
+                                                <div class="avatar avatar-sm mr-2">
+                                                    <img src="https://ui-avatars.com/api/?name=<?= urlencode($cs->nama_cs) ?>" 
+                                                         alt="Avatar" class="avatar-img rounded-circle">
                                                 </div>
-                                                <div>
-                                                    <strong class="d-block"><?= htmlspecialchars($cs->nama_cs) ?></strong>
-                                                    <small class="text-muted"><?= htmlspecialchars($cs->nik) ?></small>
-                                                </div>
+                                                <strong><?= htmlspecialchars($cs->nama_cs) ?></strong>
                                             </div>
-                                            <span class="badge badge-<?= $performanceCS ?>"><?= $cs->total_penilaian ?></span>
-                                        </div>
-                                        <div class="mt-2">
-                                            <small class="text-muted d-block">
-                                                <i class="fe fe-package mr-1"></i><?= htmlspecialchars($cs->nama_produk) ?>
-                                            </small>
-                                            <small class="text-muted d-block">
-                                                <i class="fe fe-message-circle mr-1"></i><?= htmlspecialchars($cs->nama_kanal) ?>
-                                            </small>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        <?php endforeach; ?>
+                                        </td>
+                                        <td><span class="badge badge-soft-primary"><?= htmlspecialchars($cs->nama_produk) ?></span></td>
+                                        <td><span class="badge badge-soft-info"><?= htmlspecialchars($cs->nama_kanal) ?></span></td>
+                                        <td><span class="badge badge-soft-success"><?= (int)$cs->total_penilaian ?></span></td>
+                                        <td>
+                                            <?php if (!empty($csRanking)): ?>
+                                                <span class="badge badge-primary">#<?= (int)$csRanking->peringkat ?></span>
+                                                <span class="badge badge-soft-success"><?= number_format($csRanking->nilai_akhir, 2) ?></span>
+                                            <?php else: ?>
+                                                <span class="text-muted small">-</span>
+                                            <?php endif; ?>
+                                        </td>
+                                        <td>
+                                            <a href="<?= base_url('supervisor/customer-service/detail/' . $cs->id_cs) ?>" 
+                                               class="btn btn-sm btn-primary" title="Detail">
+                                                <i class="fe fe-eye"></i>
+                                            </a>
+                                        </td>
+                                    </tr>
+                                <?php endforeach; ?>
+                            </tbody>
+                        </table>
                     </div>
                 <?php else: ?>
                     <div class="text-center py-4">

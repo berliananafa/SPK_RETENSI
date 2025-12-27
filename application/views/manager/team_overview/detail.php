@@ -93,44 +93,77 @@
         <div class="card shadow">
             <div class="card-header d-flex justify-content-between align-items-center">
                 <strong class="card-title">Anggota Customer Service</strong>
-                <span class="badge badge-soft-primary badge-pill"><?= count($cs_list) ?> CS</span>
+                <span class="badge badge-primary badge-pill"><?= count($cs_list) ?> CS</span>
             </div>
             <div class="card-body">
                 <?php if (!empty($cs_list)): ?>
-                    <div class="row">
-                        <?php foreach ($cs_list as $cs): ?>
-                            <?php 
-                                $performanceCS = $cs->total_penilaian >= 5 ? 'success' : ($cs->total_penilaian >= 3 ? 'info' : 'secondary');
-                            ?>
-                            <div class="col-md-6 mb-3">
-                                <div class="card border h-100">
-                                    <div class="card-body p-3">
-                                        <div class="d-flex justify-content-between align-items-start mb-2">
+                    <div class="table-responsive">
+                        <table class="table table-hover table-striped datatables" id="dataTable-1">
+                            <thead class="thead-light">
+                                <tr>
+                                    <th width="5%">No</th>
+                                    <th>NIK</th>
+                                    <th>Nama CS</th>
+                                    <th>Produk</th>
+                                    <th>Kanal</th>
+                                    <th>Total Penilaian</th>
+                                    <th>Ranking</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <?php foreach ($cs_list as $index => $cs): ?>
+                                    <?php
+                                        $performanceCS = $cs->total_penilaian >= 5 ? 'success' : ($cs->total_penilaian >= 3 ? 'info' : 'secondary');
+                                        $ranking = isset($rankings_by_cs[$cs->id_cs]) ? $rankings_by_cs[$cs->id_cs] : null;
+                                    ?>
+                                    <tr>
+                                        <td><?= $index + 1 ?></td>
+                                        <td>
+                                            <strong><?= htmlspecialchars($cs->nik) ?></strong>
+                                        </td>
+                                        <td>
                                             <div class="d-flex align-items-center">
-                                                <div class="avatar avatar-sm mr-2" style="width: 32px; height: 32px;">
-                                                    <img src="https://ui-avatars.com/api/?name=<?= urlencode($cs->nama_cs) ?>&background=<?= $performanceCS == 'success' ? '1cc88a' : ($performanceCS == 'info' ? '36b9cc' : '858796') ?>&color=fff&size=32" 
-                                                         alt="<?= htmlspecialchars($cs->nama_cs) ?>"
-                                                         class="avatar-img rounded-circle">
-                                                </div>
-                                                <div>
-                                                    <strong class="d-block"><?= htmlspecialchars($cs->nama_cs) ?></strong>
-                                                    <small class="text-muted"><?= htmlspecialchars($cs->nik) ?></small>
-                                                </div>
+                                                <strong><?= htmlspecialchars($cs->nama_cs) ?></strong>
                                             </div>
-                                            <span class="badge badge-<?= $performanceCS ?>"><?= $cs->total_penilaian ?></span>
-                                        </div>
-                                        <div class="mt-2">
-                                            <small class="text-muted d-block">
+                                        </td>
+                                        <td>
+                                            <small class="text-muted">
                                                 <i class="fe fe-package mr-1"></i><?= htmlspecialchars($cs->nama_produk) ?>
                                             </small>
-                                            <small class="text-muted d-block">
+                                        </td>
+                                        <td>
+                                            <small class="text-muted">
                                                 <i class="fe fe-message-circle mr-1"></i><?= htmlspecialchars($cs->nama_kanal) ?>
                                             </small>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        <?php endforeach; ?>
+                                        </td>
+                                        <td>
+                                            <span class="badge badge-<?= $performanceCS ?>"><?= $cs->total_penilaian ?></span>
+                                        </td>
+                                        <td>
+                                            <?php if ($ranking): ?>
+                                                <?php if ($ranking->peringkat <= 3): ?>
+                                                    <span class="badge badge-warning badge-lg">
+                                                        <i class="fe fe-award"></i> #<?= $ranking->peringkat ?>
+                                                    </span>
+                                                    <small class="d-block text-muted mt-1">
+                                                        Nilai: <?= number_format($ranking->nilai_akhir, 2) ?>
+                                                    </small>
+                                                <?php else: ?>
+                                                    <span class="badge badge-secondary">
+                                                        #<?= $ranking->peringkat ?>
+                                                    </span>
+                                                    <small class="d-block text-muted mt-1">
+                                                        Nilai: <?= number_format($ranking->nilai_akhir, 2) ?>
+                                                    </small>
+                                                <?php endif; ?>
+                                            <?php else: ?>
+                                                <span class="text-muted">-</span>
+                                            <?php endif; ?>
+                                        </td>
+                                    </tr>
+                                <?php endforeach; ?>
+                            </tbody>
+                        </table>
                     </div>
                 <?php else: ?>
                     <div class="text-center py-4">
