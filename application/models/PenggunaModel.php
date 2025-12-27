@@ -273,6 +273,44 @@ class PenggunaModel extends MY_Model
         return $result->total ?? 0;
     }
 
+    /**
+     * Ambil leader beserta statistik untuk supervisor
+     * - Jumlah tim
+     * - Jumlah customer service
+     */
+    public function getLeadersWithStats($supervisorId)
+    {
+        return $this->db
+            ->select('p.*,
+                      COUNT(DISTINCT t.id_tim) AS total_tim,
+                      COUNT(DISTINCT cs.id_cs) AS total_cs')
+            ->from("{$this->table} p")
+            ->join('tim t', 'p.id_user = t.id_leader', 'left')
+            ->join('customer_service cs', 't.id_tim = cs.id_tim', 'left')
+            ->where('t.id_supervisor', $supervisorId)
+            ->where('p.level', self::LEVEL_LEADER)
+            ->group_by('p.id_user')
+            ->get()
+            ->result();
+    }
+
+    /**
+     * Ambil detail leader berdasarkan ID dan verifikasi supervisor
+     * - Digunakan untuk detail leader dengan validasi akses
+     */
+    public function getLeaderByIdAndSupervisor($leaderId, $supervisorId)
+    {
+        return $this->db
+            ->select('p.*, t.nama_tim, t.id_tim')
+            ->from("{$this->table} p")
+            ->join('tim t', 'p.id_user = t.id_leader')
+            ->where('p.id_user', $leaderId)
+            ->where('t.id_supervisor', $supervisorId)
+            ->where('p.level', self::LEVEL_LEADER)
+            ->get()
+            ->row();
+    }
+
     /** ======================================================
      * JUNIOR MANAGER QUERIES
      * ====================================================== */

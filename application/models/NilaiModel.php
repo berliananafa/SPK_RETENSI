@@ -27,7 +27,7 @@ class NilaiModel extends MY_Model
 	public function getAllWithDetails($filter = [])
 	{
 		$this->db->select(
-			'nilai.*, 
+			'nilai.*,
             customer_service.id_tim,
             customer_service.nama_cs,
             customer_service.nik,
@@ -46,7 +46,8 @@ class NilaiModel extends MY_Model
 			->join('customer_service', 'nilai.id_cs = customer_service.id_cs', 'left')
 			->join('produk', 'customer_service.id_produk = produk.id_produk', 'left')
 			->join('sub_kriteria', 'nilai.id_sub_kriteria = sub_kriteria.id_sub_kriteria', 'left')
-			->join('kriteria', 'sub_kriteria.id_kriteria = kriteria.id_kriteria', 'left');
+			->join('kriteria', 'sub_kriteria.id_kriteria = kriteria.id_kriteria', 'left')
+			->where('kriteria.status_approval', 'approved');
 
 		// Apply filters when provided
 		if (!empty($filter['periode'])) {
@@ -168,7 +169,8 @@ class NilaiModel extends MY_Model
 			->from($this->table)
 			->join('customer_service', 'nilai.id_cs = customer_service.id_cs')
 			->join('sub_kriteria', 'nilai.id_sub_kriteria = sub_kriteria.id_sub_kriteria')
-			->join('kriteria', 'sub_kriteria.id_kriteria = kriteria.id_kriteria');
+			->join('kriteria', 'sub_kriteria.id_kriteria = kriteria.id_kriteria')
+			->where('kriteria.status_approval', 'approved');
 
 		if (!empty($filter['id_produk'])) {
 			$this->db->where('customer_service.id_produk', $filter['id_produk']);
@@ -311,7 +313,7 @@ class NilaiModel extends MY_Model
 	public function getByCustomerService($csId)
 	{
 		return $this->db->select(
-			'n.*, 
+			'n.*,
 				k.id_kriteria,
 				k.kode_kriteria,
 				k.nama_kriteria,
@@ -330,6 +332,7 @@ class NilaiModel extends MY_Model
 			->join('kriteria k', 'sk.id_kriteria = k.id_kriteria', 'left')
 			->join('customer_service cs', 'n.id_cs = cs.id_cs', 'left')
 			->where('n.id_cs', $csId)
+			->where('k.status_approval', 'approved')
 			->order_by('k.kode_kriteria', 'ASC')
 			->get()
 			->result();

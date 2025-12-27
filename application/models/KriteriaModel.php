@@ -32,6 +32,18 @@ class KriteriaModel extends MY_Model
     }
 
     /**
+     * Get only approved criteria ordered by code
+     * Untuk digunakan dalam proses penilaian dan perhitungan ranking
+     */
+    public function getAllApproved()
+    {
+        return $this->db->where('status_approval', 'approved')
+            ->order_by('kode_kriteria', 'ASC')
+            ->get($this->table)
+            ->result();
+    }
+
+    /**
      * Get criterion by code
      */
     public function findByCode($kode)

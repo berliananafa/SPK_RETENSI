@@ -226,14 +226,31 @@ class CustomerServiceModel extends MY_Model
      */
     public function getByTeamWithStats($teamId)
     {
-        return $this->db->select('cs.*, p.nama_produk, k.nama_kanal, 
-                                 COUNT(DISTINCT n.id_nilai) as total_penilaian')
+        // Get latest periode
+        $latestPeriode = $this->db->select('periode')
+                                  ->order_by('periode', 'DESC')
+                                  ->limit(1)
+                                  ->get('ranking')
+                                  ->row();
+
+        $periodeCondition = $latestPeriode ? "AND r.periode = '{$latestPeriode->periode}'" : "AND 1=0";
+
+        return $this->db->select('cs.*,
+                                 p.nama_produk,
+                                 k.nama_kanal,
+                                 COUNT(DISTINCT n.id_nilai) as total_penilaian,
+                                 r.nilai_akhir,
+                                 r.peringkat,
+                                 r.periode as ranking_periode')
                         ->from("{$this->table} cs")
                         ->join('produk p', 'cs.id_produk = p.id_produk')
                         ->join('kanal k', 'cs.id_kanal = k.id_kanal')
                         ->join('nilai n', 'cs.id_cs = n.id_cs', 'left')
+                        ->join("ranking r", "cs.id_cs = r.id_cs {$periodeCondition} AND r.status = 'published'", 'left', false)
                         ->where('cs.id_tim', $teamId)
-                        ->group_by('cs.id_cs')
+                        ->group_by('cs.id_cs, r.nilai_akhir, r.peringkat, r.periode')
+                        ->order_by('r.peringkat', 'ASC')
+                        ->order_by('cs.nama_cs', 'ASC')
                         ->get()
                         ->result();
     }

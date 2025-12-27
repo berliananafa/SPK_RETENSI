@@ -24,7 +24,7 @@ class SubKriteriaModel extends MY_Model
      */
     public function getAllWithDetails()
     {
-        return $this->db->select('sub_kriteria.*, kriteria.nama_kriteria, kriteria.kode_kriteria')
+        return $this->db->select('sub_kriteria.*, kriteria.nama_kriteria, kriteria.kode_kriteria, kriteria.status_approval')
             ->from($this->table)
             ->join('kriteria', 'sub_kriteria.id_kriteria = kriteria.id_kriteria', 'left')
             ->order_by('kriteria.kode_kriteria', 'ASC')
@@ -38,7 +38,7 @@ class SubKriteriaModel extends MY_Model
      */
     public function getByIdWithDetails($id)
     {
-        return $this->db->select('sub_kriteria.*, kriteria.nama_kriteria, kriteria.kode_kriteria')
+        return $this->db->select('sub_kriteria.*, kriteria.nama_kriteria, kriteria.kode_kriteria, kriteria.status_approval')
             ->from($this->table)
             ->join('kriteria', 'sub_kriteria.id_kriteria = kriteria.id_kriteria', 'left')
             ->where("sub_kriteria.{$this->primaryKey}", $id)
