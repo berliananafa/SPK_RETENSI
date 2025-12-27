@@ -133,6 +133,76 @@
 			Skor = (<?= number_format($ncf, 0, ',', '.') ?> × 0,9) + (<?= number_format($nsf, 0, ',', '.') ?> × 0,1) = <strong><?= number_format($skor, 2, ',', '.') ?></strong>
 		</small>
 	</div>
+
+	<!-- Approval Info -->
+	<?php if (!empty($ranking_info)): ?>
+	<div class="row mt-3 g-2">
+		<div class="col-md-6">
+			<div class="card border-<?= !empty($ranking_info->approved_by_leader) ? 'success' : 'warning' ?> shadow-sm">
+				<div class="card-body p-3">
+					<div class="d-flex align-items-center">
+						<div class="me-3">
+							<i class="fas fa-user-check fa-2x text-<?= !empty($ranking_info->approved_by_leader) ? 'success' : 'warning' ?>"></i>
+						</div>
+						<div class="flex-grow-1">
+							<div class="small text-muted mb-1">Approval Leader</div>
+							<?php if (!empty($ranking_info->approved_by_leader)): ?>
+								<div class="fw-bold text-success">
+									<i class="fe fe-check-circle"></i> Approved
+								</div>
+								<div class="small text-muted">
+									Oleh: <?= htmlspecialchars($ranking_info->approved_by_leader_name ?? '-') ?>
+									<br>Tanggal: <?= !empty($ranking_info->approved_at_leader) ? date('d/m/Y H:i', strtotime($ranking_info->approved_at_leader)) : '-' ?>
+								</div>
+								<?php if (!empty($ranking_info->leader_note)): ?>
+									<div class="small mt-2 p-2 bg-light rounded">
+										<i class="fe fe-message-square"></i> <?= htmlspecialchars($ranking_info->leader_note) ?>
+									</div>
+								<?php endif; ?>
+							<?php else: ?>
+								<div class="fw-bold text-warning">
+									<i class="fe fe-clock"></i> Menunggu Approval
+								</div>
+							<?php endif; ?>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+		<div class="col-md-6">
+			<div class="card border-<?= !empty($ranking_info->approved_by_supervisor) ? 'success' : 'warning' ?> shadow-sm">
+				<div class="card-body p-3">
+					<div class="d-flex align-items-center">
+						<div class="me-3">
+							<i class="fas fa-user-shield fa-2x text-<?= !empty($ranking_info->approved_by_supervisor) ? 'success' : 'warning' ?>"></i>
+						</div>
+						<div class="flex-grow-1">
+							<div class="small text-muted mb-1">Approval Supervisor</div>
+							<?php if (!empty($ranking_info->approved_by_supervisor)): ?>
+								<div class="fw-bold text-success">
+									<i class="fe fe-check-circle"></i> Approved
+								</div>
+								<div class="small text-muted">
+									Oleh: <?= htmlspecialchars($ranking_info->approved_by_supervisor_name ?? '-') ?>
+									<br>Tanggal: <?= !empty($ranking_info->approved_at_supervisor) ? date('d/m/Y H:i', strtotime($ranking_info->approved_at_supervisor)) : '-' ?>
+								</div>
+								<?php if (!empty($ranking_info->supervisor_note)): ?>
+									<div class="small mt-2 p-2 bg-light rounded">
+										<i class="fe fe-message-square"></i> <?= htmlspecialchars($ranking_info->supervisor_note) ?>
+									</div>
+								<?php endif; ?>
+							<?php else: ?>
+								<div class="fw-bold text-warning">
+									<i class="fe fe-clock"></i> Menunggu Approval
+								</div>
+							<?php endif; ?>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+	<?php endif; ?>
 </div>
 
 <!-- Detail Breakdown Table -->

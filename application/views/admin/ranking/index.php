@@ -89,7 +89,7 @@
 									<h6 class="mb-1 font-weight-bold"><?= $rankings[1]->nama_cs ?></h6>
 									<small class="text-muted d-block mb-2">NIK: <?= $rankings[1]->nik ?></small>
 									<h4 class="text-secondary mb-0 font-weight-bold">
-										<?= number_format($rankings[1]->skor_akhir, 2, ',', '.') ?></h4>
+										<?= number_format($rankings[1]->skor_akhir ?? $rankings[1]->nilai_akhir ?? 0, 2, ',', '.') ?></h4>
 								</div>
 							</div>
 						</div>
@@ -106,7 +106,7 @@
 									<h5 class="mb-1 font-weight-bold text-warning"><?= $rankings[0]->nama_cs ?></h5>
 									<small class="text-muted d-block mb-2">NIK: <?= $rankings[0]->nik ?></small>
 									<h3 class="text-warning mb-0 font-weight-bold">
-										<?= number_format($rankings[0]->skor_akhir, 2, ',', '.') ?></h3>
+										<?= number_format($rankings[0]->skor_akhir ?? $rankings[0]->nilai_akhir ?? 0, 2, ',', '.') ?></h3>
 								</div>
 							</div>
 						</div>
@@ -123,7 +123,7 @@
 									<h6 class="mb-1 font-weight-bold"><?= $rankings[2]->nama_cs ?></h6>
 									<small class="text-muted d-block mb-2">NIK: <?= $rankings[2]->nik ?></small>
 									<h4 class="text-danger mb-0 font-weight-bold">
-										<?= number_format($rankings[2]->skor_akhir, 2, ',', '.') ?></h4>
+										<?= number_format($rankings[2]->skor_akhir ?? $rankings[2]->nilai_akhir ?? 0, 2, ',', '.') ?></h4>
 								</div>
 							</div>
 						</div>
@@ -140,10 +140,13 @@
 								<th>Nama CS</th>
 								<th>Produk</th>
 								<th>Tim</th>
-								<th>Leader</th>
 								<th>NCF (90%)</th>
 								<th>NSF (10%)</th>
 								<th>Skor Akhir</th>
+								<?php if (!empty($is_saved)): ?>
+								<th width="10%" class="text-center">Approval Leader</th>
+								<th width="10%" class="text-center">Approval SPV</th>
+								<?php endif; ?>
 								<th width="10%" class="text-center">Aksi</th>
 							</tr>
 						</thead>
@@ -178,24 +181,48 @@
 											<?= htmlspecialchars($rank->nama_produk ?? '-'); ?>
 										</td>
 										<td><?= htmlspecialchars($rank->nama_tim ?? '-') ?></td>
-										<td>
-											<small><?= htmlspecialchars($rank->nama_leader ?? '-') ?></small>
-										</td>
 										<td><small class="text-danger"><?= number_format($rank->ncf ?? 0, 2, ',', '.') ?></small></td>
 										<td><small class="text-primary"><?= number_format($rank->nsf ?? 0, 2, ',', '.') ?></small></td>
 										<td>
 											<div class="progress" style="height: 25px;">
 												<?php
-												$max_score = !empty($rankings) ? $rankings[0]->skor_akhir : 1;
-												$percentage = ($rank->skor_akhir / $max_score) * 100;
+												$max_score = !empty($rankings) ? max(array_column($rankings, 'skor_akhir') ?: array_column($rankings, 'nilai_akhir')) : 1;
+												$current_score = $rank->skor_akhir ?? $rank->nilai_akhir ?? 0;
+												$percentage = ($current_score / $max_score) * 100;
 												?>
 												<div class="progress-bar bg-success" role="progressbar"
 													style="width: <?= $percentage ?>%;" aria-valuenow="<?= $percentage ?>"
 													aria-valuemin="0" aria-valuemax="100">
-													<strong><?= number_format($rank->skor_akhir, 2, ',', '.') ?></strong>
+													<strong><?= number_format($current_score, 2, ',', '.') ?></strong>
 												</div>
 											</div>
 										</td>
+										<?php if (!empty($is_saved)): ?>
+										<td class="text-center">
+											<?php if (!empty($rank->approved_by_leader)): ?>
+												<span class="badge badge-success" title="Disetujui oleh <?= htmlspecialchars($rank->approved_by_leader_name ?? '') ?>">
+													<i class="fe fe-check"></i> Approved
+												</span>
+												<br><small class="text-muted"><?= !empty($rank->approved_at_leader) ? date('d/m/Y', strtotime($rank->approved_at_leader)) : '' ?></small>
+											<?php else: ?>
+												<span class="badge badge-warning">
+													<i class="fe fe-clock"></i> Pending
+												</span>
+											<?php endif; ?>
+										</td>
+										<td class="text-center">
+											<?php if (!empty($rank->approved_by_supervisor)): ?>
+												<span class="badge badge-success" title="Disetujui oleh <?= htmlspecialchars($rank->approved_by_supervisor_name ?? '') ?>">
+													<i class="fe fe-check"></i> Approved
+												</span>
+												<br><small class="text-muted"><?= !empty($rank->approved_at_supervisor) ? date('d/m/Y', strtotime($rank->approved_at_supervisor)) : '' ?></small>
+											<?php else: ?>
+												<span class="badge badge-warning">
+													<i class="fe fe-clock"></i> Pending
+												</span>
+											<?php endif; ?>
+										</td>
+										<?php endif; ?>
 										<td class="text-center">
 											<button class="btn btn-sm btn-info" data-toggle="modal" data-target="#modalDetail"
 												data-id="<?= $rank->id_cs ?>" title="Detail Nilai">
@@ -206,7 +233,7 @@
 								<?php endforeach; ?>
 							<?php else: ?>
 								<tr>
-									<td colspan="10" class="text-center text-muted py-4">
+									<td colspan="<?= !empty($is_saved) ? '12' : '10' ?>" class="text-center text-muted py-4">
 										<i class="fe fe-inbox fe-24 mb-3"></i>
 										<p>Belum ada data ranking untuk periode ini</p>
 										<button class="btn btn-primary" data-toggle="modal" data-target="#modalProcess">

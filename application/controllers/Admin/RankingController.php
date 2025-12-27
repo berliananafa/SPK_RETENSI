@@ -32,8 +32,8 @@ class RankingController extends Admin_Controller
 		$this->load->library('ProfileMatching');
 	}
 
-	/**  
-	 * Menampilkan hasil ranking (tanpa menyimpan ke DB)
+	/**
+	 * Menampilkan hasil ranking dari database (jika ada) atau hitung langsung
 	 * */
 	public function index()
 	{
@@ -49,6 +49,7 @@ class RankingController extends Admin_Controller
 		// Aktifkan DataTables dan Chart
 		enable_datatables();
 		enable_charts();
+		enable_sweetalert();
 
 		// Ambil filter dari URL
 		$periode   = $this->input->get('periode') ?? date('Y-m');
@@ -60,11 +61,20 @@ class RankingController extends Admin_Controller
 		if ($idTim)    $filter['id_tim']    = $idTim;
 		if ($idProduk) $filter['id_produk'] = $idProduk;
 
-		// Ambil data penilaian sesuai filter
-		$penilaian = $this->NilaiModel->getAllWithDetails($filter);
+		// Cek apakah ada ranking tersimpan di database
+		$savedRankings = $this->RankingModel->getByPeriode($periode, $filter);
 
-		// Hitung ranking menggunakan metode Profile Matching
-		$rankings = $this->profilematching->hitungRanking($penilaian, $periode);
+		if (!empty($savedRankings)) {
+			// Gunakan data dari database dengan approval info
+			// Tambahkan nilai NCF dan NSF dengan menghitung ulang dari data nilai
+			$rankings = $this->_enrichRankingsWithNcfNsf($savedRankings, $periode);
+			$isSaved = true;
+		} else {
+			// Hitung ranking langsung dari nilai
+			$penilaian = $this->NilaiModel->getAllWithDetails($filter);
+			$rankings = $this->profilematching->hitungRanking($penilaian, $periode);
+			$isSaved = false;
+		}
 
 		// Render halaman hasil ranking
 		render_layout('admin/ranking/index', [
@@ -73,7 +83,8 @@ class RankingController extends Admin_Controller
 			'filter_tim'      => $idTim,
 			'filter_produk'   => $idProduk,
 			'tim'             => $this->TimModel->all(),
-			'produk'          => $this->ProdukModel->all()
+			'produk'          => $this->ProdukModel->all(),
+			'is_saved'        => $isSaved // Flag untuk tahu apakah data dari DB
 		]);
 	}
 
@@ -332,6 +343,18 @@ class RankingController extends Admin_Controller
 			$namaLeader = $timInfo->nama_leader ?? null;
 		}
 
+		// Ambil info ranking dari database (untuk approval info)
+		$rankingInfo = $this->db->select('ranking.*,
+				leader.nama_pengguna as approved_by_leader_name,
+				supervisor.nama_pengguna as approved_by_supervisor_name')
+			->from('ranking')
+			->join('pengguna leader', 'ranking.approved_by_leader = leader.id_user', 'left')
+			->join('pengguna supervisor', 'ranking.approved_by_supervisor = supervisor.id_user', 'left')
+			->where('ranking.id_cs', $idCs)
+			->where('ranking.periode', $periode)
+			->get()
+			->row();
+
 		// Render view detail
 		$this->load->view('admin/ranking/detail', [
 			'rows'      => $rows,
@@ -351,6 +374,60 @@ class RankingController extends Admin_Controller
 				'nama_produk' => $csInfo->nama_produk ?? null,
 				'nama_leader' => $namaLeader,
 			],
+			'ranking_info' => $rankingInfo // Info approval dari database
 		]);
+	}
+
+	/**
+	 * Helper: Tambahkan nilai NCF dan NSF ke ranking dari database
+	 * Menghitung ulang dari data nilai yang ada
+	 */
+	private function _enrichRankingsWithNcfNsf($rankings, $periode)
+	{
+		foreach ($rankings as $rank) {
+			// Ambil seluruh nilai CS untuk periode ini
+			$nilaiAll = $this->NilaiModel->getByCustomerService($rank->id_cs);
+			$nilai = array_filter($nilaiAll, fn($r) => ($r->periode ?? '') == $periode);
+
+			// Hitung NCF dan NSF
+			$totalCF = $totalSF = 0;
+			$itemCF = $itemSF = 0;
+
+			foreach ($nilai as $row) {
+				$nilaiAktual = (float) $row->nilai;
+
+				// Hitung GAP
+				$gap = $this->profilematching->hitungGap(
+					$row->id_sub_kriteria,
+					$nilaiAktual
+				);
+
+				$jenis = strtolower(trim($row->jenis_kriteria ?? ''));
+
+				// Akumulasi Core Factor & Secondary Factor
+				if ($jenis === 'core_factor') {
+					$totalCF += $gap['gap'];
+					$itemCF++;
+				} else {
+					$totalSF += $gap['gap'];
+					$itemSF++;
+				}
+			}
+
+			// Hitung NCF dan NSF
+			$ncf = $itemCF > 0 ? ($totalCF / $itemCF) : 0;
+			$nsf = $itemSF > 0 ? ($totalSF / $itemSF) : 0;
+
+			// Tambahkan ke objek ranking
+			$rank->ncf = round($ncf, 4);
+			$rank->nsf = round($nsf, 4);
+
+			// Pastikan skor_akhir juga ada (copy dari nilai_akhir jika belum ada)
+			if (!isset($rank->skor_akhir)) {
+				$rank->skor_akhir = $rank->nilai_akhir ?? 0;
+			}
+		}
+
+		return $rankings;
 	}
 }
