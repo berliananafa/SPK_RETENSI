@@ -55,7 +55,8 @@ class RankingController extends Supervisor_Controller
 	}
 
 	/**
-	 * Setujui ranking oleh supervisor (AJAX POST)
+	 * Approve ranking oleh supervisor (AJAX POST)
+	 * Supervisor approve after leader, then publish
 	 */
 	public function approve($id = null)
 	{
@@ -70,6 +71,7 @@ class RankingController extends Supervisor_Controller
 		}
 
 		$supervisorId = $this->session->userdata('user_id');
+		$note = $this->input->post('note') ?? '';
 
 		// Ambil ranking
 		$ranking = $this->RankingModel->getByIdWithDetails($id);
@@ -93,18 +95,96 @@ class RankingController extends Supervisor_Controller
 			return;
 		}
 
-		// Update status ranking menjadi "approved" (atau "validated" untuk supervisor)
+		// Validasi status: harus pending_supervisor (sudah diapprove leader)
+		if ($ranking->status !== 'pending_supervisor') {
+			$this->output->set_status_header(400);
+			echo json_encode(['status' => 'error', 'message' => 'Ranking tidak dalam status pending supervisor']);
+			return;
+		}
+
+		// Update: Supervisor approve -> Published (final)
 		$update = [
-			'status' => 'approved',
-			'supervisor_approval' => 1,
 			'approved_by_supervisor' => $supervisorId,
-			'approved_at' => date('Y-m-d H:i:s')
+			'approved_at_supervisor' => date('Y-m-d H:i:s'),
+			'supervisor_note' => $note,
+			'status' => 'published'
 		];
 
 		$saved = $this->RankingModel->update($id, $update);
 		if ($saved) {
 			$this->output->set_content_type('application/json');
-			echo json_encode(['status' => 'success', 'message' => 'Ranking berhasil disetujui oleh supervisor']);
+			echo json_encode(['status' => 'success', 'message' => 'Ranking berhasil disetujui dan dipublikasikan']);
+		} else {
+			$this->output->set_status_header(500);
+			echo json_encode(['status' => 'error', 'message' => 'Gagal menyimpan perubahan']);
+		}
+	}
+
+	/**
+	 * Reject ranking oleh supervisor (AJAX POST)
+	 */
+	public function reject($id = null)
+	{
+		if (!$this->input->is_ajax_request() && $this->input->method() !== 'post') {
+			show_error('Invalid request method', 405);
+		}
+
+		if (empty($id)) {
+			$this->output->set_status_header(400);
+			echo json_encode(['status' => 'error', 'message' => 'ID ranking tidak diberikan']);
+			return;
+		}
+
+		$supervisorId = $this->session->userdata('user_id');
+		$note = $this->input->post('note') ?? '';
+
+		if (empty($note)) {
+			$this->output->set_status_header(400);
+			echo json_encode(['status' => 'error', 'message' => 'Catatan penolakan harus diisi']);
+			return;
+		}
+
+		// Ambil ranking
+		$ranking = $this->RankingModel->getByIdWithDetails($id);
+		if (!$ranking) {
+			$this->output->set_status_header(404);
+			echo json_encode(['status' => 'error', 'message' => 'Ranking tidak ditemukan']);
+			return;
+		}
+
+		// Validasi: ranking harus milik tim di bawah supervisor ini
+		$teamBelongsToSupervisor = $this->db->select('id_tim')
+			->from('tim')
+			->where('id_tim', $ranking->id_tim)
+			->where('id_supervisor', $supervisorId)
+			->get()
+			->row();
+
+		if (!$teamBelongsToSupervisor) {
+			$this->output->set_status_header(403);
+			echo json_encode(['status' => 'error', 'message' => 'Anda tidak memiliki akses ke ranking ini']);
+			return;
+		}
+
+		// Validasi status
+		if ($ranking->status !== 'pending_supervisor') {
+			$this->output->set_status_header(400);
+			echo json_encode(['status' => 'error', 'message' => 'Ranking tidak dalam status pending supervisor']);
+			return;
+		}
+
+		// Update: Supervisor reject -> kembali ke Leader untuk revisi
+		$update = [
+			'approved_by_supervisor' => $supervisorId,
+			'approved_at_supervisor' => date('Y-m-d H:i:s'),
+			'supervisor_note' => $note,
+			'status' => 'rejected_supervisor'
+		];
+
+		$saved = $this->RankingModel->update($id, $update);
+		if ($saved) {
+			$this->output->set_content_type('application/json');
+			echo json_encode(['status' => 'success', 'message' => 'Ranking berhasil ditolak']);
 		} else {
 			$this->output->set_status_header(500);
 			echo json_encode(['status' => 'error', 'message' => 'Gagal menyimpan perubahan']);

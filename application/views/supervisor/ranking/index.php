@@ -104,25 +104,38 @@
 											<strong><?= number_format($rank->nilai_akhir, 2, ',', '.') ?></strong>
 										</td>
 										<td>
-											<?php if (($rank->status ?? '') === 'approved'): ?>
+											<?php if ($rank->status === 'pending_supervisor'): ?>
+												<span class="badge badge-warning">
+													<i class="fe fe-clock"></i> Menunggu Approval
+												</span>
+											<?php elseif ($rank->status === 'pending_leader'): ?>
+												<span class="badge badge-info">
+													<i class="fe fe-arrow-down"></i> Di Leader
+												</span>
+											<?php elseif ($rank->status === 'rejected_supervisor'): ?>
+												<span class="badge badge-danger">
+													<i class="fe fe-x"></i> Ditolak
+												</span>
+											<?php elseif ($rank->status === 'published'): ?>
 												<span class="badge badge-success">
-													<i class="fe fe-check"></i> Disetujui
+													<i class="fe fe-check"></i> Published
 												</span>
 											<?php else: ?>
-												<span class="badge badge-warning">
-													<i class="fe fe-clock"></i> Menunggu
-												</span>
+												<span class="badge badge-secondary"><?= ucfirst($rank->status ?? 'draft') ?></span>
 											<?php endif; ?>
 										</td>
 										<td class="text-center">
-											<?php if (($rank->status ?? '') !== 'approved'): ?>
-												<button class="btn btn-sm btn-primary btn-approve-ranking" data-id="<?= $rank->id_ranking ?? $rank->id ?>">
+											<?php if ($rank->status === 'pending_supervisor'): ?>
+												<button class="btn btn-sm btn-success btn-approve" data-id="<?= $rank->id_ranking ?? $rank->id ?>">
 													<i class="fe fe-check"></i> Setujui
 												</button>
-											<?php else: ?>
-												<button class="btn btn-sm btn-outline-secondary" disabled>
-													<i class="fe fe-check-circle"></i>
+												<button class="btn btn-sm btn-danger btn-reject" data-id="<?= $rank->id_ranking ?? $rank->id ?>">
+													<i class="fe fe-x"></i> Tolak
 												</button>
+											<?php elseif (!empty($rank->approved_by_supervisor)): ?>
+												<span class="text-success"><i class="fe fe-check-circle"></i> Approved</span>
+											<?php else: ?>
+												<span class="text-muted">-</span>
 											<?php endif; ?>
 										</td>
 									</tr>
@@ -170,35 +183,98 @@ ob_start();
 			window.location.href = '<?= base_url('supervisor/ranking') ?>';
 		});
 
-		// Approve ranking button click handler
-		$('.btn-approve-ranking').on('click', function(e) {
+		let currentRankingId = null;
+
+		// Approve button
+		$('.btn-approve').on('click', function(e) {
 			e.preventDefault();
-
 			const id = $(this).data('id');
-			const btn = $(this);
 
-			if (confirm('Apakah Anda yakin ingin menyetujui ranking ini?')) {
-				fetch('<?= base_url('supervisor/ranking/approve') ?>/' + id, {
+			Swal.fire({
+				title: 'Konfirmasi Approval',
+				text: 'Apakah Anda yakin ingin menyetujui dan mempublikasikan ranking ini?',
+				icon: 'question',
+				showCancelButton: true,
+				confirmButtonColor: '#28a745',
+				cancelButtonColor: '#6c757d',
+				confirmButtonText: 'Ya, Setujui & Publish',
+				cancelButtonText: 'Batal'
+			}).then((result) => {
+				if (result.isConfirmed) {
+					$.ajax({
+						url: '<?= base_url('supervisor/ranking/approve') ?>/' + id,
 						method: 'POST',
+						dataType: 'json',
 						headers: {
-							'X-Requested-With': 'XMLHttpRequest',
-							'Content-Type': 'application/json'
+							'X-Requested-With': 'XMLHttpRequest'
+						},
+						success: function(response) {
+							if (response.status === 'success') {
+								Swal.fire('Berhasil!', response.message, 'success').then(() => {
+									location.reload();
+								});
+							} else {
+								Swal.fire('Error', response.message, 'error');
+							}
+						},
+						error: function(xhr) {
+							const response = xhr.responseJSON || {};
+							Swal.fire('Error', response.message || 'Terjadi kesalahan', 'error');
 						}
-					})
-					.then(response => response.json())
-					.then(data => {
-						if (data.success) {
-							alert('Ranking berhasil disetujui!');
-							location.reload();
-						} else {
-							alert('Error: ' + (data.message || 'Gagal menyetujui ranking'));
-						}
-					})
-					.catch(error => {
-						console.error('Error:', error);
-						alert('Terjadi kesalahan: ' + error);
 					});
-			}
+				}
+			});
+		});
+
+		// Reject button
+		$('.btn-reject').on('click', function(e) {
+			e.preventDefault();
+			currentRankingId = $(this).data('id');
+
+			Swal.fire({
+				title: 'Tolak Ranking',
+				input: 'textarea',
+				inputLabel: 'Catatan Penolakan',
+				inputPlaceholder: 'Masukkan alasan penolakan...',
+				inputAttributes: {
+					'aria-label': 'Catatan penolakan'
+				},
+				showCancelButton: true,
+				confirmButtonColor: '#dc3545',
+				cancelButtonColor: '#6c757d',
+				confirmButtonText: 'Tolak',
+				cancelButtonText: 'Batal',
+				inputValidator: (value) => {
+					if (!value) {
+						return 'Catatan penolakan harus diisi!'
+					}
+				}
+			}).then((result) => {
+				if (result.isConfirmed) {
+					$.ajax({
+						url: '<?= base_url('supervisor/ranking/reject') ?>/' + currentRankingId,
+						method: 'POST',
+						data: { note: result.value },
+						dataType: 'json',
+						headers: {
+							'X-Requested-With': 'XMLHttpRequest'
+						},
+						success: function(response) {
+							if (response.status === 'success') {
+								Swal.fire('Berhasil!', response.message, 'success').then(() => {
+									location.reload();
+								});
+							} else {
+								Swal.fire('Error', response.message, 'error');
+							}
+						},
+						error: function(xhr) {
+							const response = xhr.responseJSON || {};
+							Swal.fire('Error', response.message || 'Terjadi kesalahan', 'error');
+						}
+					});
+				}
+			});
 		});
 
 
