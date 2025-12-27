@@ -163,21 +163,6 @@ class TimModel extends MY_Model
     }
 
     /**
-     * Get team detail by manager
-     */
-    public function getTeamByManager($teamId, $managerId)
-    {
-        return $this->db->select('t.*, ps.nama_pengguna as supervisor_name, pl.nama_pengguna as leader_name')
-                        ->from("{$this->table} t")
-                        ->join('pengguna ps', 't.id_supervisor = ps.id_user', 'left')
-                        ->join('pengguna pl', 't.id_leader = pl.id_user', 'left')
-                        ->where('t.id_tim', $teamId)
-                        ->where('ps.id_atasan', $managerId)
-                        ->get()
-                        ->row();
-    }
-
-    /**
      * Count teams under a manager
      */
     public function countByManager($managerId)
@@ -224,6 +209,62 @@ class TimModel extends MY_Model
                         ->join('pengguna pl', 't.id_leader = pl.id_user', 'left')
                         ->where('t.id_tim', $teamId)
                         ->where('t.id_supervisor', $supervisorId)
+                        ->get()
+                        ->row();
+    }
+
+    /**
+     * Get teams by Junior Manager (through supervisor hierarchy)
+     */
+    public function getByJuniorManager($managerId)
+    {
+        return $this->db->select('t.*,
+                                 ps.nama_pengguna as supervisor_name,
+                                 pl.nama_pengguna as leader_name,
+                                 COUNT(DISTINCT cs.id_cs) as total_cs,
+                                 COUNT(DISTINCT n.id_nilai) as total_penilaian')
+                        ->from("{$this->table} t")
+                        ->join('pengguna ps', 't.id_supervisor = ps.id_user', 'left')
+                        ->join('pengguna pl', 't.id_leader = pl.id_user', 'left')
+                        ->join('customer_service cs', 't.id_tim = cs.id_tim', 'left')
+                        ->join('nilai n', 'cs.id_cs = n.id_cs', 'left')
+                        ->where('ps.id_atasan', $managerId)
+                        ->group_by('t.id_tim')
+                        ->order_by('t.nama_tim', 'ASC')
+                        ->get()
+                        ->result();
+    }
+
+    /**
+     * Count teams by Junior Manager
+     */
+    public function countByJuniorManager($managerId)
+    {
+        $result = $this->db->select('COUNT(DISTINCT t.id_tim) as total')
+                           ->from("{$this->table} t")
+                           ->join('pengguna ps', 't.id_supervisor = ps.id_user')
+                           ->where('ps.id_atasan', $managerId)
+                           ->get()
+                           ->row();
+
+        return $result ? (int)$result->total : 0;
+    }
+
+    /**
+     * Get team detail for Junior Manager with validation
+     */
+    public function getTeamByManager($teamId, $managerId)
+    {
+        return $this->db->select('t.*,
+                                 ps.nama_pengguna as supervisor_name,
+                                 ps.email as supervisor_email,
+                                 pl.nama_pengguna as leader_name,
+                                 pl.email as leader_email')
+                        ->from("{$this->table} t")
+                        ->join('pengguna ps', 't.id_supervisor = ps.id_user', 'left')
+                        ->join('pengguna pl', 't.id_leader = pl.id_user', 'left')
+                        ->where('t.id_tim', $teamId)
+                        ->where('ps.id_atasan', $managerId)
                         ->get()
                         ->row();
     }

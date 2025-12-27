@@ -1,11 +1,21 @@
 <?php
 defined('BASEPATH') OR exit('No direct script access allowed');
 
+/**
+ * Model CustomerService
+ * 
+ * Mengelola data Customer Service (CS) beserta relasinya
+ * dengan produk, kanal, tim, supervisor, manager, dan penilaian.
+ */
 class CustomerServiceModel extends MY_Model
 {
+    // Nama tabel utama
     protected $table = 'customer_service';
+
+    // Primary key tabel
     protected $primaryKey = 'id_cs';
 
+    // Field yang boleh diisi (mass assignment)
     protected $fillable = [
         'id_produk',
         'id_kanal', 
@@ -20,7 +30,7 @@ class CustomerServiceModel extends MY_Model
     }
 
     /**
-     * Get all customer service with related data
+     * Mengambil seluruh data CS beserta detail produk, kanal, dan tim
      */
     public function getAllWithDetails()
     {
@@ -40,7 +50,7 @@ class CustomerServiceModel extends MY_Model
     }
 
     /**
-     * Get customer service with details by id
+     * Mengambil data CS berdasarkan ID beserta detail relasi
      */
     public function getByIdWithDetails($id)
     {
@@ -60,7 +70,7 @@ class CustomerServiceModel extends MY_Model
     }
 
     /**
-     * Get customer service by NIK
+     * Mengambil data CS berdasarkan NIK
      */
     public function findByNik($nik)
     {
@@ -68,7 +78,7 @@ class CustomerServiceModel extends MY_Model
     }
 
     /**
-     * Alias for findByNik
+     * Alias dari findByNik (penamaan alternatif)
      */
     public function getByNik($nik)
     {
@@ -76,19 +86,23 @@ class CustomerServiceModel extends MY_Model
     }
 
     /**
-     * Check if NIK exists
+     * Mengecek apakah NIK sudah terdaftar
+     * Digunakan untuk validasi create/update
      */
     public function nikExists($nik, $excludeId = null)
     {
         $this->db->where('nik', $nik);
+
+        // Mengecualikan ID tertentu (saat update)
         if ($excludeId) {
             $this->db->where("{$this->primaryKey} !=", $excludeId);
         }
+
         return $this->db->count_all_results($this->table) > 0;
     }
 
     /**
-     * Get CS by product
+     * Mengambil CS berdasarkan produk
      */
     public function getByProduk($idProduk)
     {
@@ -99,7 +113,7 @@ class CustomerServiceModel extends MY_Model
     }
 
     /**
-     * Get CS by kanal
+     * Mengambil CS berdasarkan kanal
      */
     public function getByKanal($idKanal)
     {
@@ -110,7 +124,7 @@ class CustomerServiceModel extends MY_Model
     }
 
     /**
-     * Get CS by tim
+     * Mengambil CS berdasarkan tim
      */
     public function getByTim($idTim)
     {
@@ -121,7 +135,7 @@ class CustomerServiceModel extends MY_Model
     }
 
     /**
-     * Get CS by team with full details
+     * Mengambil CS berdasarkan tim dengan detail produk & kanal
      */
     public function getByTeam($idTim)
     {
@@ -140,7 +154,8 @@ class CustomerServiceModel extends MY_Model
     }
 
     /**
-     * Get CS for ranking calculation
+     * Mengambil CS untuk proses perhitungan ranking
+     * Filter bersifat opsional
      */
     public function getForRanking($filter = [])
     {
@@ -162,7 +177,7 @@ class CustomerServiceModel extends MY_Model
     }
 
     /**
-     * Get CS list under a manager
+     * Mengambil CS yang berada di bawah seorang manager
      */
     public function getByManager($managerId)
     {
@@ -177,7 +192,7 @@ class CustomerServiceModel extends MY_Model
     }
 
     /**
-     * Count CS under a manager
+     * Menghitung jumlah CS di bawah manager
      */
     public function countByManager($managerId)
     {
@@ -191,7 +206,7 @@ class CustomerServiceModel extends MY_Model
     }
 
     /**
-     * Get CS by supervisor
+     * Mengambil CS berdasarkan supervisor
      */
     public function getBySupervisor($supervisorId)
     {
@@ -207,7 +222,7 @@ class CustomerServiceModel extends MY_Model
     }
 
     /**
-     * Get CS by team with penilaian count
+     * Mengambil CS per tim beserta total penilaian
      */
     public function getByTeamWithStats($teamId)
     {
@@ -224,7 +239,7 @@ class CustomerServiceModel extends MY_Model
     }
 
     /**
-     * Verify CS belongs to manager
+     * Verifikasi apakah CS berada di bawah manager tertentu
      */
     public function verifyByManager($csId, $managerId)
     {
@@ -239,7 +254,8 @@ class CustomerServiceModel extends MY_Model
     }
 
     /**
-     * Get CS performance statistics by manager
+     * Statistik performa CS berdasarkan manager
+     * (Top 10 berdasarkan rata-rata nilai)
      */
     public function getPerformanceStatsByManager($managerId)
     {
@@ -263,7 +279,7 @@ class CustomerServiceModel extends MY_Model
     }
 
     /**
-     * Count CS under a supervisor
+     * Menghitung jumlah CS di bawah supervisor
      */
     public function countBySupervisor($supervisorId)
     {
@@ -276,7 +292,7 @@ class CustomerServiceModel extends MY_Model
     }
 
     /**
-     * Get CS performance statistics by supervisor
+     * Statistik performa CS berdasarkan supervisor
      */
     public function getPerformanceStatsBySupervisor($supervisorId)
     {
@@ -299,7 +315,7 @@ class CustomerServiceModel extends MY_Model
     }
 
     /**
-     * Get single CS by supervisor with verification
+     * Mengambil detail CS tertentu dengan validasi supervisor
      */
     public function getCsBySupervisor($csId, $supervisorId)
     {
@@ -316,5 +332,67 @@ class CustomerServiceModel extends MY_Model
                         ->group_by('cs.id_cs')
                         ->get()
                         ->row();
+    }
+
+    /**
+     * Get all CS by Junior Manager (through supervisor hierarchy)
+     */
+    public function getByJuniorManager($managerId)
+    {
+        return $this->db->select('cs.*, t.id_tim, t.nama_tim, t.id_supervisor,
+                                 p.nama_produk, k.nama_kanal,
+                                 supervisor.nama_pengguna as nama_supervisor,
+                                 COUNT(DISTINCT n.id_nilai) as total_penilaian,
+                                 COALESCE(AVG(n.nilai), 0) as rata_rata_nilai')
+                        ->from("{$this->table} cs")
+                        ->join('tim t', 'cs.id_tim = t.id_tim')
+                        ->join('produk p', 'cs.id_produk = p.id_produk')
+                        ->join('kanal k', 'cs.id_kanal = k.id_kanal')
+                        ->join('pengguna supervisor', 't.id_supervisor = supervisor.id_user')
+                        ->join('nilai n', 'cs.id_cs = n.id_cs', 'left')
+                        ->where('supervisor.id_atasan', $managerId)
+                        ->group_by('cs.id_cs')
+                        ->order_by('cs.nama_cs', 'ASC')
+                        ->get()
+                        ->result();
+    }
+
+    /**
+     * Get specific CS by Junior Manager with validation
+     */
+    public function getCsByJuniorManager($csId, $managerId)
+    {
+        return $this->db->select('cs.*, t.id_tim, t.nama_tim, t.id_supervisor,
+                                 p.nama_produk, k.nama_kanal,
+                                 supervisor.nama_pengguna as nama_supervisor,
+                                 COUNT(DISTINCT n.id_nilai) as total_penilaian,
+                                 COALESCE(AVG(n.nilai), 0) as rata_rata_nilai')
+                        ->from("{$this->table} cs")
+                        ->join('tim t', 'cs.id_tim = t.id_tim')
+                        ->join('produk p', 'cs.id_produk = p.id_produk')
+                        ->join('kanal k', 'cs.id_kanal = k.id_kanal')
+                        ->join('pengguna supervisor', 't.id_supervisor = supervisor.id_user')
+                        ->join('nilai n', 'cs.id_cs = n.id_cs', 'left')
+                        ->where('cs.id_cs', $csId)
+                        ->where('supervisor.id_atasan', $managerId)
+                        ->group_by('cs.id_cs')
+                        ->get()
+                        ->row();
+    }
+
+    /**
+     * Count CS by Junior Manager
+     */
+    public function countByJuniorManager($managerId)
+    {
+        $result = $this->db->select('COUNT(DISTINCT cs.id_cs) as total')
+                           ->from("{$this->table} cs")
+                           ->join('tim t', 'cs.id_tim = t.id_tim')
+                           ->join('pengguna supervisor', 't.id_supervisor = supervisor.id_user')
+                           ->where('supervisor.id_atasan', $managerId)
+                           ->get()
+                           ->row();
+
+        return $result ? (int)$result->total : 0;
     }
 }

@@ -319,4 +319,148 @@ class RankingModel extends MY_Model
 
 		return $this->db->get()->result();
 	}
+
+	/**
+	 * Get rankings by periode for specific team (Leader scope)
+	 */
+	public function getByPeriodeAndTeam($periode, $teamId)
+	{
+		$this->db->select('r.*, cs.nik, cs.nama_cs, p.nama_produk, k.nama_kanal')
+			->from("{$this->table} r")
+			->join('customer_service cs', 'r.id_cs = cs.id_cs')
+			->join('produk p', 'cs.id_produk = p.id_produk')
+			->join('kanal k', 'cs.id_kanal = k.id_kanal')
+			->where('cs.id_tim', $teamId)
+			->where('r.periode', $periode)
+			->where('r.status', 'published')
+			->order_by('r.peringkat', 'ASC');
+
+		return $this->db->get()->result();
+	}
+
+	/**
+	 * Get latest periode for specific team
+	 */
+	public function getLatestPeriodeByTeam($teamId)
+	{
+		return $this->db->select('r.periode')
+			->from("{$this->table} r")
+			->join('customer_service cs', 'r.id_cs = cs.id_cs')
+			->where('cs.id_tim', $teamId)
+			->where('r.status', 'published')
+			->order_by('r.periode', 'DESC')
+			->limit(1)
+			->get()
+			->row();
+	}
+
+	/**
+	 * Get distinct periods for specific team
+	 */
+	public function getPeriodsByTeam($teamId)
+	{
+		return $this->db->select('r.periode')
+			->from("{$this->table} r")
+			->join('customer_service cs', 'r.id_cs = cs.id_cs')
+			->distinct()
+			->where('cs.id_tim', $teamId)
+			->where('r.status', 'published')
+			->order_by('r.periode', 'DESC')
+			->get()
+			->result();
+	}
+
+	/**
+	 * Count rankings by supervisor
+	 */
+	public function countBySupervisor($supervisorId)
+	{
+		$this->db->select('COUNT(DISTINCT r.id_ranking) as total');
+		$this->db->from('ranking r');
+		$this->db->join('customer_service cs', 'cs.id_cs = r.id_cs');
+		$this->db->join('tim t', 't.id_tim = cs.id_tim');
+		$this->db->where('t.id_supervisor', $supervisorId);
+		$this->db->where('r.status', 'published');
+
+		$result = $this->db->get()->row();
+		return $result ? (int)$result->total : 0;
+	}
+
+	/**
+	 * Get latest periode for Junior Manager (through supervisor hierarchy)
+	 */
+	public function getLatestPeriodeByManager($managerId)
+	{
+		return $this->db->select('r.periode')
+			->from("{$this->table} r")
+			->join('customer_service cs', 'r.id_cs = cs.id_cs')
+			->join('tim t', 'cs.id_tim = t.id_tim')
+			->join('pengguna supervisor', 't.id_supervisor = supervisor.id_user')
+			->where('supervisor.id_atasan', $managerId)
+			->where('r.status', 'published')
+			->order_by('r.periode', 'DESC')
+			->limit(1)
+			->get()
+			->row();
+	}
+
+	/**
+	 * Get rankings by periode for Junior Manager with filter
+	 */
+	public function getByPeriodeByManager($periode, $managerId, $filter = [])
+	{
+		$this->db->select('r.*, cs.nik, cs.nama_cs, t.nama_tim, p.nama_produk, k.nama_kanal')
+			->from("{$this->table} r")
+			->join('customer_service cs', 'r.id_cs = cs.id_cs')
+			->join('tim t', 'cs.id_tim = t.id_tim')
+			->join('produk p', 'cs.id_produk = p.id_produk')
+			->join('kanal k', 'cs.id_kanal = k.id_kanal')
+			->join('pengguna supervisor', 't.id_supervisor = supervisor.id_user')
+			->where('supervisor.id_atasan', $managerId)
+			->where('r.periode', $periode)
+			->where('r.status', 'published');
+
+		if (!empty($filter['id_produk'])) {
+			$this->db->where('cs.id_produk', $filter['id_produk']);
+		}
+
+		if (!empty($filter['id_kanal'])) {
+			$this->db->where('cs.id_kanal', $filter['id_kanal']);
+		}
+
+		if (!empty($filter['id_tim'])) {
+			$this->db->where('cs.id_tim', $filter['id_tim']);
+		}
+
+		return $this->db->order_by('r.peringkat', 'ASC')
+			->get()
+			->result();
+	}
+
+	/**
+	 * Get distinct periods for Junior Manager
+	 */
+	public function getPeriodesByManager($managerId)
+	{
+		return $this->db->select('r.periode')
+			->from("{$this->table} r")
+			->join('customer_service cs', 'r.id_cs = cs.id_cs')
+			->join('tim t', 'cs.id_tim = t.id_tim')
+			->join('pengguna supervisor', 't.id_supervisor = supervisor.id_user')
+			->distinct()
+			->where('supervisor.id_atasan', $managerId)
+			->where('r.status', 'published')
+			->order_by('r.periode', 'DESC')
+			->get()
+			->result();
+	}
+
+	/**
+	 * Get top rankings for dashboard (alias for getTopRankings)
+	 * Used by Admin Dashboard
+	 */
+	public function getTopRankingsForDashboard($periode, $limit = 5)
+	{
+		return $this->getTopRankings($periode, $limit, ['status' => 'published']);
+	}
 }

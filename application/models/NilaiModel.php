@@ -415,4 +415,72 @@ class NilaiModel extends MY_Model
 			->get()
 			->result();
 	}
+
+	/**
+	 * Get distinct periods for Junior Manager scope
+	 */
+	public function getDistinctPeriodesByManager($managerId)
+	{
+		return $this->db->select('n.periode')
+			->distinct()
+			->from("{$this->table} n")
+			->join('customer_service cs', 'n.id_cs = cs.id_cs')
+			->join('tim t', 'cs.id_tim = t.id_tim')
+			->join('pengguna supervisor', 't.id_supervisor = supervisor.id_user')
+			->where('supervisor.id_atasan', $managerId)
+			->where('n.periode IS NOT NULL')
+			->order_by('n.periode', 'DESC')
+			->get()
+			->result();
+	}
+
+	/**
+	 * Get nilai with details filtered by Junior Manager scope
+	 */
+	public function getNilaiWithDetailsByManager($managerId, $filter = [])
+	{
+		$this->db->select(
+			'n.*,
+			 cs.id_cs,
+			 cs.nama_cs,
+			 cs.nik,
+			 t.id_tim,
+			 t.nama_tim,
+			 p.nama_produk,
+			 k.id_kriteria,
+			 k.nama_kriteria,
+			 k.kode_kriteria,
+			 sk.id_sub_kriteria,
+			 sk.nama_sub_kriteria,
+			 supervisor.nama_pengguna as nama_supervisor'
+		)
+			->from("{$this->table} n")
+			->join('customer_service cs', 'n.id_cs = cs.id_cs')
+			->join('produk p', 'cs.id_produk = p.id_produk', 'left')
+			->join('tim t', 'cs.id_tim = t.id_tim')
+			->join('pengguna supervisor', 't.id_supervisor = supervisor.id_user', 'left')
+			->join('sub_kriteria sk', 'n.id_sub_kriteria = sk.id_sub_kriteria')
+			->join('kriteria k', 'sk.id_kriteria = k.id_kriteria')
+			->where('supervisor.id_atasan', $managerId);
+
+		// Apply filters
+		if (!empty($filter['periode'])) {
+			$this->db->where('n.periode', $filter['periode']);
+		}
+		if (!empty($filter['id_tim'])) {
+			$this->db->where('cs.id_tim', $filter['id_tim']);
+		}
+		if (!empty($filter['id_cs'])) {
+			$this->db->where('cs.id_cs', $filter['id_cs']);
+		}
+		if (!empty($filter['id_kriteria'])) {
+			$this->db->where('k.id_kriteria', $filter['id_kriteria']);
+		}
+
+		return $this->db->order_by('n.periode', 'DESC')
+			->order_by('cs.nama_cs', 'ASC')
+			->order_by('k.kode_kriteria', 'ASC')
+			->get()
+			->result();
+	}
 }
