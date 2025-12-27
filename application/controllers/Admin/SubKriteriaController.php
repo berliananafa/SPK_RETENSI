@@ -58,8 +58,8 @@ class SubKriteriaController extends Admin_Controller
             ['title' => 'Tambah']
         ]);
         
-        // Ambil data kriteria untuk dropdown pilihan
-        $data['kriteria'] = $this->KriteriaModel->getAllOrdered();
+        // Ambil data kriteria untuk dropdown pilihan (hanya yang approved)
+        $data['kriteria'] = $this->KriteriaModel->getAllApproved();
 
         render_layout('admin/sub_kriteria/create', $data);
     }
@@ -121,8 +121,8 @@ class SubKriteriaController extends Admin_Controller
             ['title' => 'Edit']
         ]);
         
-        // Ambil data kriteria untuk dropdown
-        $data['kriteria'] = $this->KriteriaModel->getAllOrdered();
+        // Ambil data kriteria untuk dropdown (hanya yang approved)
+        $data['kriteria'] = $this->KriteriaModel->getAllApproved();
 
         render_layout('admin/sub_kriteria/edit', $data);
     }

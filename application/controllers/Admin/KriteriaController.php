@@ -30,13 +30,30 @@ class KriteriaController extends Admin_Controller
             ['title' => 'Dashboard', 'url' => base_url('admin/dashboard')],
             ['title' => 'Kriteria']
         ]);
-        
+
         // Aktifkan DataTables dan SweetAlert
         enable_datatables();
         enable_sweetalert();
-        
+
         // Ambil seluruh data kriteria (sudah terurut)
         $data['kriteria'] = $this->KriteriaModel->getAllOrdered();
+
+        // Hitung statistik approval
+        $data['total_kriteria'] = count($data['kriteria']);
+        $data['total_pending'] = 0;
+        $data['total_approved'] = 0;
+        $data['total_rejected'] = 0;
+
+        foreach ($data['kriteria'] as $k) {
+            $status = $k->status_approval ?? 'pending';
+            if ($status === 'pending') {
+                $data['total_pending']++;
+            } elseif ($status === 'approved') {
+                $data['total_approved']++;
+            } elseif ($status === 'rejected') {
+                $data['total_rejected']++;
+            }
+        }
 
         // Render halaman index kriteria
         render_layout('admin/kriteria/index', $data);
@@ -100,16 +117,17 @@ class KriteriaController extends Admin_Controller
             
             // Data yang akan disimpan
             $data = [
-                'kode_kriteria'  => $this->input->post('kode_kriteria', true),
-                'nama_kriteria'  => $this->input->post('nama_kriteria', true),
-                'jenis_kriteria' => $this->input->post('jenis_kriteria', true),
-                'bobot'          => $bobot,
-                'deskripsi'      => $this->input->post('deskripsi', true)
+                'kode_kriteria'   => $this->input->post('kode_kriteria', true),
+                'nama_kriteria'   => $this->input->post('nama_kriteria', true),
+                'jenis_kriteria'  => $this->input->post('jenis_kriteria', true),
+                'bobot'           => $bobot,
+                'deskripsi'       => $this->input->post('deskripsi', true),
+                'status_approval' => 'pending' // Default status menunggu approval
             ];
 
             // Simpan ke database
             if ($this->KriteriaModel->create($data)) {
-                $this->session->set_flashdata('success', 'Kriteria berhasil ditambahkan!');
+                $this->session->set_flashdata('success', 'Kriteria berhasil ditambahkan! Menunggu persetujuan Manager.');
                 redirect('admin/kriteria');
             } else {
                 $this->session->set_flashdata('error', 'Gagal menambahkan kriteria!');
@@ -187,7 +205,15 @@ class KriteriaController extends Admin_Controller
             $bobot = ($this->input->post('jenis_kriteria', true) === 'core_factor')
                 ? 90
                 : 10;
-            
+
+            // Cek apakah ada perubahan data
+            $hasChanges = (
+                $kriteria->kode_kriteria !== $this->input->post('kode_kriteria', true) ||
+                $kriteria->nama_kriteria !== $this->input->post('nama_kriteria', true) ||
+                $kriteria->jenis_kriteria !== $this->input->post('jenis_kriteria', true) ||
+                $kriteria->deskripsi !== $this->input->post('deskripsi', true)
+            );
+
             // Data update
             $data = [
                 'kode_kriteria'  => $this->input->post('kode_kriteria', true),
@@ -197,9 +223,21 @@ class KriteriaController extends Admin_Controller
                 'deskripsi'      => $this->input->post('deskripsi', true)
             ];
 
+            // Jika ada perubahan, reset approval status
+            if ($hasChanges) {
+                $data['status_approval'] = 'pending';
+                $data['approved_by'] = null;
+                $data['approved_at'] = null;
+                $data['rejection_note'] = null;
+            }
+
             // Update ke database
             if ($this->KriteriaModel->updateById($id, $data)) {
-                $this->session->set_flashdata('success', 'Kriteria berhasil diupdate!');
+                if ($hasChanges) {
+                    $this->session->set_flashdata('success', 'Kriteria berhasil diupdate! Status approval direset ke pending.');
+                } else {
+                    $this->session->set_flashdata('success', 'Kriteria berhasil diupdate!');
+                }
                 redirect('admin/kriteria');
             } else {
                 $this->session->set_flashdata('error', 'Gagal mengupdate kriteria!');
