@@ -1,30 +1,50 @@
 <?php
 defined('BASEPATH') OR exit('No direct script access allowed');
 
+/**
+ * Controller Produk
+ * Mengelola CRUD data produk pada halaman admin
+ */
 class ProdukController extends Admin_Controller
 {
+    /**
+     * Constructor
+     * Load model Produk
+     */
     public function __construct()
     {
         parent::__construct();
         $this->load->model('ProdukModel', 'Produk');
     }
 
+    /**
+     * Halaman daftar produk
+     */
     public function index()
     {
+        // Set judul halaman
         set_page_title('Manajemen Produk');
+
+        // Set breadcrumb navigasi
         set_breadcrumb([
             ['title' => 'Dashboard', 'url' => base_url('admin/dashboard')],
             ['title' => 'Produk']
         ]);
         
+        // Aktifkan DataTables & SweetAlert
         enable_datatables();
         enable_sweetalert();
         
+        // Ambil seluruh data produk yang sudah diurutkan
         $data['products'] = $this->Produk->getAllOrdered();
         
+        // Render halaman index produk
         render_layout('admin/produk/index', $data);
     }
 
+    /**
+     * Halaman form tambah produk
+     */
     public function create()
     {
         set_page_title('Tambah Produk');
@@ -37,32 +57,42 @@ class ProdukController extends Admin_Controller
         render_layout('admin/produk/create');
     }
 
+    /**
+     * Proses simpan data produk baru
+     */
     public function store()
     {
+        // Validasi input form
         $this->form_validation->set_rules('sku_produk', 'SKU Produk', 'required|trim|is_unique[produk.sku_produk]');
         $this->form_validation->set_rules('nama_produk', 'Nama Produk', 'required|trim|min_length[3]');
         $this->form_validation->set_rules('deskripsi', 'Deskripsi', 'trim');
 
+        // Jika validasi gagal, kembali ke form create
         if ($this->form_validation->run() === FALSE) {
             $this->create();
         } else {
+            // Data produk dari input user
             $data = [
-                'sku_produk'   => $this->input->post('sku_produk', true),
-                'nama_produk'  => $this->input->post('nama_produk', true),
-                'deskripsi'    => $this->input->post('deskripsi', true),
+                'sku_produk'  => $this->input->post('sku_produk', true),
+                'nama_produk' => $this->input->post('nama_produk', true),
+                'deskripsi'   => $this->input->post('deskripsi', true),
             ];
 
-            // Handle file upload
+            /**
+             * Proses upload gambar produk (jika ada)
+             */
             if (!empty($_FILES['gambar']['name'])) {
                 $upload = $this->_upload_image();
                 if ($upload['status']) {
                     $data['gambar'] = $upload['file_name'];
                 } else {
+                    // Jika upload gagal
                     $this->session->set_flashdata('error', $upload['message']);
                     redirect('admin/produk/create');
                 }
             }
 
+            // Simpan ke database
             if ($this->Produk->create($data)) {
                 $this->session->set_flashdata('success', 'Produk berhasil ditambahkan!');
                 redirect('admin/produk');
@@ -73,6 +103,9 @@ class ProdukController extends Admin_Controller
         }
     }
 
+    /**
+     * Halaman form edit produk
+     */
     public function edit($id)
     {
         set_page_title('Edit Produk');
@@ -82,8 +115,10 @@ class ProdukController extends Admin_Controller
             ['title' => 'Edit']
         ]);
         
+        // Ambil data produk berdasarkan ID
         $data['product'] = $this->Produk->find($id);
         
+        // Jika produk tidak ditemukan
         if (empty($data['product'])) {
             $this->session->set_flashdata('error', 'Data produk tidak ditemukan!');
             redirect('admin/produk');
@@ -92,14 +127,19 @@ class ProdukController extends Admin_Controller
         render_layout('admin/produk/edit', $data);
     }
 
+    /**
+     * Proses update data produk
+     */
     public function update($id)
     {
+        // Ambil data produk lama
         $product = $this->Produk->find($id);
         if (empty($product)) {
             $this->session->set_flashdata('error', 'Data produk tidak ditemukan!');
             redirect('admin/produk');
         }
 
+        // Validasi input
         $this->form_validation->set_rules('sku_produk', 'SKU Produk', 'required|trim|callback_check_sku_unique['.$id.']');
         $this->form_validation->set_rules('nama_produk', 'Nama Produk', 'required|trim|min_length[3]');
         $this->form_validation->set_rules('deskripsi', 'Deskripsi', 'trim');
@@ -108,16 +148,18 @@ class ProdukController extends Admin_Controller
             $this->edit($id);
         } else {
             $data = [
-                'sku_produk'   => $this->input->post('sku_produk', true),
-                'nama_produk'  => $this->input->post('nama_produk', true),
-                'deskripsi'    => $this->input->post('deskripsi', true),
+                'sku_produk'  => $this->input->post('sku_produk', true),
+                'nama_produk' => $this->input->post('nama_produk', true),
+                'deskripsi'   => $this->input->post('deskripsi', true),
             ];
 
-            // Handle file upload
+            /**
+             * Upload gambar baru (jika diubah)
+             */
             if (!empty($_FILES['gambar']['name'])) {
                 $upload = $this->_upload_image();
                 if ($upload['status']) {
-                    // Delete old image
+                    // Hapus gambar lama
                     if (!empty($product->gambar)) {
                         $old_file = FCPATH . 'uploads/produk/' . $product->gambar;
                         if (file_exists($old_file)) {
@@ -131,6 +173,7 @@ class ProdukController extends Admin_Controller
                 }
             }
 
+            // Update ke database
             if ($this->Produk->updateById($id, $data)) {
                 $this->session->set_flashdata('success', 'Produk berhasil diupdate!');
                 redirect('admin/produk');
@@ -141,6 +184,9 @@ class ProdukController extends Admin_Controller
         }
     }
 
+    /**
+     * Hapus data produk
+     */
     public function delete($id)
     {
         $product = $this->Produk->find($id);
@@ -149,16 +195,19 @@ class ProdukController extends Admin_Controller
             redirect('admin/produk');
         }
 
-        // Check if product is being used by customer service
+        // Cek apakah produk masih digunakan oleh CS
         $this->db->where('id_produk', $id);
         $used_count = $this->db->count_all_results('customer_service');
         
         if ($used_count > 0) {
-            $this->session->set_flashdata('error', 'Produk tidak dapat dihapus karena masih digunakan oleh ' . $used_count . ' Customer Service!');
+            $this->session->set_flashdata(
+                'error',
+                'Produk tidak dapat dihapus karena masih digunakan oleh ' . $used_count . ' Customer Service!'
+            );
             redirect('admin/produk');
         }
 
-        // Delete image file if exists
+        // Hapus file gambar produk
         if (!empty($product->gambar)) {
             $file_path = FCPATH . 'uploads/produk/' . $product->gambar;
             if (file_exists($file_path)) {
@@ -166,6 +215,7 @@ class ProdukController extends Admin_Controller
             }
         }
 
+        // Hapus data dari database
         if ($this->Produk->deleteById($id)) {
             $this->session->set_flashdata('success', 'Produk berhasil dihapus!');
         } else {
@@ -175,6 +225,9 @@ class ProdukController extends Admin_Controller
         redirect('admin/produk');
     }
 
+    /**
+     * Validasi SKU agar tetap unik saat update
+     */
     public function check_sku_unique($sku, $id)
     {
         if ($this->Produk->skuExists($sku, $id)) {
@@ -184,14 +237,17 @@ class ProdukController extends Admin_Controller
         return TRUE;
     }
 
+    /**
+     * Fungsi private untuk upload gambar produk
+     */
     private function _upload_image()
     {
         $config['upload_path']   = FCPATH . 'uploads/produk/';
         $config['allowed_types'] = 'jpg|jpeg|png|gif';
-        $config['max_size']      = 2048; // 2MB
+        $config['max_size']      = 2048; // Maksimal 2MB
         $config['encrypt_name']  = TRUE;
 
-        // Create directory if not exists
+        // Buat folder upload jika belum ada
         if (!is_dir($config['upload_path'])) {
             mkdir($config['upload_path'], 0777, TRUE);
         }

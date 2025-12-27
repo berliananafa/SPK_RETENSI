@@ -1,46 +1,56 @@
 <?php
 defined('BASEPATH') OR exit('No direct script access allowed');
 
+/**
+ * Controller Supervisor
+ *
+ * Mengelola data Supervisor dalam struktur organisasi
+ * Supervisor berada di bawah Junior Manager dan memiliki scope Kanal & Produk
+ */
 class SupervisorController extends Admin_Controller
 {
     public function __construct()
     {
         parent::__construct();
+
+        // Load model yang dibutuhkan
         $this->load->model('PenggunaModel');
         $this->load->model('SupervisorScopeModel');
         $this->load->model('KanalModel');
         $this->load->model('ProdukModel');
+
+        // Load library validasi form
         $this->load->library('form_validation');
     }
 
     /**
-     * List semua Supervisor
+     * Menampilkan daftar semua Supervisor
      */
     public function index()
     {
+        // Set judul halaman
         set_page_title('Supervisor');
+
+        // Set breadcrumb navigasi
         set_breadcrumb([
             ['title' => 'Dashboard', 'url' => base_url('admin/dashboard')],
             ['title' => 'Organisasi'],
             ['title' => 'Supervisor']
         ]);
         
+        // Aktifkan DataTables dan SweetAlert
         enable_datatables();
 		enable_sweetalert();
         
-        // Ambil data supervisor dengan join ke junior manager (atasan)
-        $this->db->select('pengguna.*, atasan.nama_pengguna as nama_atasan, atasan.nik as nik_atasan');
-        $this->db->from('pengguna');
-        $this->db->join('pengguna as atasan', 'pengguna.id_atasan = atasan.id_user', 'left');
-        $this->db->where('pengguna.level', PenggunaModel::LEVEL_SUPERVISOR);
-        $this->db->order_by('pengguna.nama_pengguna', 'ASC');
-        $data['supervisors'] = $this->db->get()->result();
+        // Ambil data supervisor beserta data atasannya (Junior Manager) - optimized
+        $data['supervisors'] = $this->PenggunaModel->getSupervisorsWithAtasan();
         
+        // Render halaman index supervisor
         render_layout('admin/supervisor/index', $data);
     }
 
     /**
-     * Form tambah Supervisor
+     * Menampilkan form tambah Supervisor
      */
     public function create()
     {
@@ -52,70 +62,78 @@ class SupervisorController extends Admin_Controller
             ['title' => 'Tambah']
         ]);
         
-        // Ambil data junior manager untuk dropdown
-        $data['junior_managers'] = $this->PenggunaModel->getByLevel(PenggunaModel::LEVEL_JUNIOR_MANAGER);
+        // Ambil data Junior Manager untuk dropdown atasan
+        $data['junior_managers'] = $this->PenggunaModel
+            ->getByLevel(PenggunaModel::LEVEL_JUNIOR_MANAGER);
         
-        // Ambil data kanal dan produk
-        $data['kanals'] = $this->KanalModel->getAllOrdered();
+        // Ambil data kanal dan produk untuk scope supervisor
+        $data['kanals']  = $this->KanalModel->getAllOrdered();
         $data['produks'] = $this->ProdukModel->getAllOrdered();
         
         render_layout('admin/supervisor/create', $data);
     }
 
     /**
-     * Simpan data Supervisor baru
+     * Menyimpan data Supervisor baru
      */
     public function store()
     {
+        // Validasi input form
         $this->form_validation->set_rules('nik', 'NIK', 'required|trim');
         $this->form_validation->set_rules('nama_pengguna', 'Nama Supervisor', 'required|trim');
         $this->form_validation->set_rules('email', 'Email', 'required|trim|valid_email');
         $this->form_validation->set_rules('id_atasan', 'Junior Manager', 'required');
 
+        // Jika validasi gagal, kembali ke form create
         if ($this->form_validation->run() == FALSE) {
             $this->create();
             return;
         }
 
-        // Cek duplikasi NIK
+        // Cek NIK sudah terdaftar atau belum
         if ($this->PenggunaModel->nikExists($this->input->post('nik'))) {
             $this->session->set_flashdata('error', 'NIK sudah terdaftar di sistem!');
             redirect('admin/supervisor/create');
             return;
         }
 
-        // Cek duplikasi Email
+        // Cek Email sudah terdaftar atau belum
         if ($this->PenggunaModel->emailExists($this->input->post('email'))) {
             $this->session->set_flashdata('error', 'Email sudah terdaftar di sistem!');
             redirect('admin/supervisor/create');
             return;
         }
 
+        // Data supervisor yang akan disimpan
         $data = [
-            'nik' => $this->input->post('nik'),
+            'nik'           => $this->input->post('nik'),
             'nama_pengguna' => $this->input->post('nama_pengguna'),
-            'email' => $this->input->post('email'),
-            'password' => 'password', // Password default
-            'level' => PenggunaModel::LEVEL_SUPERVISOR,
-            'id_atasan' => $this->input->post('id_atasan')
+            'email'         => $this->input->post('email'),
+            'password'      => 'password', // Password default
+            'level'         => PenggunaModel::LEVEL_SUPERVISOR,
+            'id_atasan'     => $this->input->post('id_atasan')
         ];
 
+        // Simpan data supervisor
         $supervisorId = $this->PenggunaModel->create($data);
         
         if ($supervisorId) {
-            // Simpan supervisor scope (kanal dan produk)
-            $kanals = $this->input->post('id_kanal');
+            // Simpan scope supervisor (kombinasi kanal & produk)
+            $kanals  = $this->input->post('id_kanal');
             $produks = $this->input->post('id_produk');
             
             if (!empty($kanals) && !empty($produks)) {
                 foreach ($kanals as $kanalId) {
                     foreach ($produks as $produkId) {
-                        // Cek apakah kombinasi sudah ada
-                        if (!$this->SupervisorScopeModel->scopeExists($supervisorId, $kanalId, $produkId)) {
+
+                        // Hindari duplikasi scope
+                        if (!$this->SupervisorScopeModel
+                            ->scopeExists($supervisorId, $kanalId, $produkId)) {
+
                             $this->SupervisorScopeModel->create([
                                 'id_supervisor' => $supervisorId,
-                                'id_kanal' => $kanalId,
-                                'id_produk' => $produkId
+                                'id_kanal'      => $kanalId,
+                                'id_produk'     => $produkId
                             ]);
                         }
                     }
@@ -131,12 +149,14 @@ class SupervisorController extends Admin_Controller
     }
 
     /**
-     * Form edit Supervisor
+     * Menampilkan form edit Supervisor
      */
     public function edit($id)
     {
+        // Ambil data supervisor berdasarkan ID
         $supervisor = $this->PenggunaModel->find($id);
 
+        // Validasi data supervisor
         if (!$supervisor || $supervisor->level != PenggunaModel::LEVEL_SUPERVISOR) {
             $this->session->set_flashdata('error', 'Data Supervisor tidak ditemukan!');
             redirect('admin/supervisor');
@@ -151,34 +171,36 @@ class SupervisorController extends Admin_Controller
             ['title' => 'Edit']
         ]);
 
-        $data['supervisor'] = $supervisor;
-        $data['junior_managers'] = $this->PenggunaModel->getByLevel(PenggunaModel::LEVEL_JUNIOR_MANAGER);
+        $data['supervisor']       = $supervisor;
+        $data['junior_managers']  = $this->PenggunaModel->getByLevel(PenggunaModel::LEVEL_JUNIOR_MANAGER);
         
         // Ambil data kanal dan produk
-        $data['kanals'] = $this->KanalModel->getAllOrdered();
+        $data['kanals']  = $this->KanalModel->getAllOrdered();
         $data['produks'] = $this->ProdukModel->getAllOrdered();
         
         // Ambil scope yang sudah dipilih
         $scopes = $this->SupervisorScopeModel->getBySupervisor($id);
-        $data['selected_kanals'] = array_unique(array_column($scopes, 'id_kanal'));
+        $data['selected_kanals']  = array_unique(array_column($scopes, 'id_kanal'));
         $data['selected_produks'] = array_unique(array_column($scopes, 'id_produk'));
         
         render_layout('admin/supervisor/edit', $data);
     }
 
     /**
-     * Update data Supervisor
+     * Memperbarui data Supervisor
      */
     public function update($id)
     {
         $supervisor = $this->PenggunaModel->find($id);
 
+        // Validasi supervisor
         if (!$supervisor || $supervisor->level != PenggunaModel::LEVEL_SUPERVISOR) {
             $this->session->set_flashdata('error', 'Data Supervisor tidak ditemukan!');
             redirect('admin/supervisor');
             return;
         }
 
+        // Validasi input
         $this->form_validation->set_rules('nik', 'NIK', 'required|trim');
         $this->form_validation->set_rules('nama_pengguna', 'Nama Supervisor', 'required|trim');
         $this->form_validation->set_rules('email', 'Email', 'required|trim|valid_email');
@@ -189,54 +211,53 @@ class SupervisorController extends Admin_Controller
             return;
         }
 
-        // Cek duplikasi NIK (exclude current ID)
+        // Cek NIK & Email duplikat (exclude ID saat ini)
         if ($this->PenggunaModel->nikExists($this->input->post('nik'), $id)) {
             $this->session->set_flashdata('error', 'NIK sudah terdaftar di sistem!');
             redirect('admin/supervisor/edit/' . $id);
             return;
         }
 
-        // Cek duplikasi Email (exclude current ID)
         if ($this->PenggunaModel->emailExists($this->input->post('email'), $id)) {
             $this->session->set_flashdata('error', 'Email sudah terdaftar di sistem!');
             redirect('admin/supervisor/edit/' . $id);
             return;
         }
 
+        // Data yang akan diupdate
         $data = [
-            'nik' => $this->input->post('nik'),
+            'nik'           => $this->input->post('nik'),
             'nama_pengguna' => $this->input->post('nama_pengguna'),
-            'email' => $this->input->post('email'),
-            'id_atasan' => $this->input->post('id_atasan')
+            'email'         => $this->input->post('email'),
+            'id_atasan'     => $this->input->post('id_atasan')
         ];
 
         // Update password jika diisi
-        $new_password = $this->input->post('password');
-        if (!empty($new_password)) {
-            $data['password'] = $new_password;
+        if ($this->input->post('password')) {
+            $data['password'] = $this->input->post('password');
         }
 
         if ($this->PenggunaModel->updateById($id, $data)) {
-            // Update supervisor scope
-            // Hapus scope lama
+
+            // Reset scope lama
             $this->SupervisorScopeModel->deleteBySupervisor($id);
-            
+
             // Simpan scope baru
-            $kanals = $this->input->post('id_kanal');
+            $kanals  = $this->input->post('id_kanal');
             $produks = $this->input->post('id_produk');
-            
+
             if (!empty($kanals) && !empty($produks)) {
                 foreach ($kanals as $kanalId) {
                     foreach ($produks as $produkId) {
                         $this->SupervisorScopeModel->create([
                             'id_supervisor' => $id,
-                            'id_kanal' => $kanalId,
-                            'id_produk' => $produkId
+                            'id_kanal'      => $kanalId,
+                            'id_produk'     => $produkId
                         ]);
                     }
                 }
             }
-            
+
             $this->session->set_flashdata('success', 'Data Supervisor berhasil diperbarui!');
             redirect('admin/supervisor');
         } else {
@@ -246,12 +267,13 @@ class SupervisorController extends Admin_Controller
     }
 
     /**
-     * Hapus data Supervisor
+     * Menghapus data Supervisor
      */
     public function delete($id)
     {
         $supervisor = $this->PenggunaModel->find($id);
 
+        // Validasi supervisor
         if (!$supervisor || $supervisor->level != PenggunaModel::LEVEL_SUPERVISOR) {
             $this->session->set_flashdata('error', 'Data Supervisor tidak ditemukan!');
             redirect('admin/supervisor');
@@ -259,19 +281,21 @@ class SupervisorController extends Admin_Controller
         }
 
         // Cek apakah masih menjadi supervisor di tim
-        $count_tim = $this->db->where('id_supervisor', $id)
-                              ->count_all_results('tim');
+        $count_tim = $this->PenggunaModel->countTeamSupervisorUsage($id);
         
         if ($count_tim > 0) {
-            $this->session->set_flashdata('error', "Supervisor tidak dapat dihapus karena masih menjadi supervisor dari {$count_tim} Tim!");
+            $this->session->set_flashdata(
+                'error',
+                "Supervisor tidak dapat dihapus karena masih menangani {$count_tim} Tim!"
+            );
             redirect('admin/supervisor');
             return;
         }
 
-        // Hapus supervisor scope terlebih dahulu
+        // Hapus scope supervisor terlebih dahulu
         $this->SupervisorScopeModel->deleteBySupervisor($id);
         
-        // Hapus supervisor
+        // Hapus data supervisor
         if ($this->PenggunaModel->deleteById($id)) {
             $this->session->set_flashdata('success', 'Data Supervisor berhasil dihapus!');
         } else {
@@ -282,12 +306,13 @@ class SupervisorController extends Admin_Controller
     }
 
     /**
-     * Detail Supervisor
+     * Menampilkan detail Supervisor
      */
     public function detail($id)
     {
         $supervisor = $this->PenggunaModel->find($id);
 
+        // Validasi supervisor
         if (!$supervisor || $supervisor->level != PenggunaModel::LEVEL_SUPERVISOR) {
             $this->session->set_flashdata('error', 'Data Supervisor tidak ditemukan!');
             redirect('admin/supervisor');
@@ -303,17 +328,14 @@ class SupervisorController extends Admin_Controller
         ]);
 
         $data['supervisor'] = $supervisor;
-        
-        // Ambil scope supervisor (kanal dan produk yang ditangani)
+
+        // Ambil scope supervisor (kanal & produk)
         $data['scopes'] = $this->SupervisorScopeModel->getBySupervisor($id);
         
-        // Ambil nama Junior Manager (atasan)
-        if (!empty($supervisor->id_atasan)) {
-            $atasan = $this->PenggunaModel->find($supervisor->id_atasan);
-            $data['junior_manager'] = $atasan;
-        } else {
-            $data['junior_manager'] = null;
-        }
+        // Ambil data Junior Manager (atasan)
+        $data['junior_manager'] = $supervisor->id_atasan
+            ? $this->PenggunaModel->find($supervisor->id_atasan)
+            : null;
         
         render_layout('admin/supervisor/detail', $data);
     }

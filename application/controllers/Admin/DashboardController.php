@@ -1,63 +1,75 @@
 <?php
 defined('BASEPATH') OR exit('No direct script access allowed');
 
+/**
+ * Controller Dashboard Admin
+ * 
+ * Bertanggung jawab untuk menampilkan halaman dashboard admin
+ * beserta ringkasan data dan peringkat Customer Service.
+ */
 class DashboardController extends Admin_Controller
 {
+    /**
+     * Constructor
+     * 
+     * Memanggil constructor parent dan memuat
+     * model-model yang dibutuhkan pada dashboard.
+     */
     public function __construct()
     {
         parent::__construct();
+
+        // Load model yang digunakan pada dashboard admin
         $this->load->model([
             'CustomerServiceModel' => 'CustomerService',
-            'KriteriaModel' => 'Kriteria',
-            'RankingModel' => 'Ranking',
-            'ProdukModel' => 'Produk',
-            'KanalModel' => 'Kanal',
-            'TimModel' => 'Tim'
+            'KriteriaModel'        => 'Kriteria',
+            'RankingModel'         => 'Ranking',
+            'ProdukModel'          => 'Produk',
+            'KanalModel'           => 'Kanal',
+            'TimModel'             => 'Tim',
+            'PenggunaModel'
         ]);
     }
 
     /**
-     * Halaman dashboard admin
+     * Halaman Dashboard Admin
+     * 
+     * Menampilkan statistik data master dan
+     * ranking Customer Service berdasarkan periode terbaru.
      */
     public function index()
     {
+        // Set judul halaman
         set_page_title('Dashboard Admin');
+
+        // Set breadcrumb navigasi
         set_breadcrumb([
             ['title' => 'Dashboard', 'url' => base_url('admin/dashboard')],
             ['title' => 'Admin']
         ]);
 
-        // Get statistics data
-        $data = [
-            'total_users'        => $this->db->count_all('pengguna'),
-            'total_cs'           => $this->db->count_all('customer_service'),
-            'total_criteria'     => $this->db->count_all('kriteria'),
-            'total_rankings'     => $this->db->count_all('ranking'),
-            'total_produk'       => $this->db->count_all('produk'),
-            'total_kanal'        => $this->db->count_all('kanal'),
-            'total_teams'        => $this->db->count_all('tim'),
-        ];
+        /**
+         * Mengambil data statistik jumlah data
+         * dari masing-masing tabel
+         */
+        $data = $this->PenggunaModel->getAllTablesCount();
 
-        // Get current periode
+        // Mengambil periode ranking terbaru
         $currentPeriode = $this->Ranking->getLatestPeriode();
         $data['current_periode'] = $currentPeriode;
 
-        // Get top 10 CS ranking
+        /**
+         * Mengambil data Top Customer Service
+         * berdasarkan nilai akhir pada periode terbaru
+         */
         if ($currentPeriode) {
-            $data['top_cs'] = $this->db
-                ->select('cs.nama_cs, cs.nik, r.nilai_akhir, r.peringkat, t.nama_tim')
-                ->from('ranking r')
-                ->join('customer_service cs', 'cs.id_cs = r.id_cs', 'left')
-                ->join('tim t', 'cs.id_tim = t.id_tim', 'left')
-                ->where('r.periode', $currentPeriode)
-                ->order_by('r.nilai_akhir', 'DESC')
-                ->limit(5)
-                ->get()
-                ->result();
+            $data['top_cs'] = $this->Ranking->getTopRankingsForDashboard($currentPeriode, 5);
         } else {
+            // Jika belum ada periode, data ranking dikosongkan
             $data['top_cs'] = [];
         }
 
+        // Render halaman dashboard admin
         render_layout('admin/dashboard/index', $data);
     }
 }

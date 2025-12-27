@@ -1,18 +1,28 @@
 <?php
 defined('BASEPATH') OR exit('No direct script access allowed');
 
+/**
+ * Controller Leader
+ *
+ * Mengelola data Leader dalam struktur organisasi.
+ * Leader memimpin maksimal 1 Tim.
+ */
 class LeaderController extends Admin_Controller
 {
     public function __construct()
     {
         parent::__construct();
+
+        // Load model yang dibutuhkan
         $this->load->model('PenggunaModel');
         $this->load->model('TimModel');
+
+        // Library validasi form
         $this->load->library('form_validation');
     }
 
     /**
-     * List semua Leader
+     * Menampilkan daftar semua Leader
      */
     public function index()
     {
@@ -26,22 +36,14 @@ class LeaderController extends Admin_Controller
         enable_datatables();
 		enable_sweetalert();
         
-        // Ambil data leader dengan info tim
-        $leaders = $this->PenggunaModel->getByLevel(PenggunaModel::LEVEL_LEADER);
-        
-        // Tambahkan info tim untuk setiap leader
-        foreach ($leaders as $leader) {
-            $team = $this->TimModel->getByLeader($leader->id_user);
-            $leader->tim = !empty($team) ? $team[0] : null; // Leader hanya pegang 1 tim
-        }
-        
-        $data['leaders'] = $leaders;
+        // Ambil semua pengguna dengan level Leader beserta info tim (optimized)
+        $data['leaders'] = $this->PenggunaModel->getLeadersWithTeamInfo();
         
         render_layout('admin/leader/index', $data);
     }
 
     /**
-     * Form tambah Leader
+     * Menampilkan form tambah Leader
      */
     public function create()
     {
@@ -57,10 +59,11 @@ class LeaderController extends Admin_Controller
     }
 
     /**
-     * Simpan data Leader baru
+     * Menyimpan data Leader baru
      */
     public function store()
     {
+        // Validasi input
         $this->form_validation->set_rules('nik', 'NIK', 'required|trim');
         $this->form_validation->set_rules('nama_pengguna', 'Nama Leader', 'required|trim');
         $this->form_validation->set_rules('email', 'Email', 'required|trim|valid_email');
@@ -70,26 +73,27 @@ class LeaderController extends Admin_Controller
             return;
         }
 
-        // Cek duplikasi NIK
+        // Cek NIK duplikat
         if ($this->PenggunaModel->nikExists($this->input->post('nik'))) {
             $this->session->set_flashdata('error', 'NIK sudah terdaftar di sistem!');
             redirect('admin/leader/create');
             return;
         }
 
-        // Cek duplikasi Email
+        // Cek Email duplikat
         if ($this->PenggunaModel->emailExists($this->input->post('email'))) {
             $this->session->set_flashdata('error', 'Email sudah terdaftar di sistem!');
             redirect('admin/leader/create');
             return;
         }
 
+        // Data Leader
         $data = [
-            'nik' => $this->input->post('nik'),
+            'nik'           => $this->input->post('nik'),
             'nama_pengguna' => $this->input->post('nama_pengguna'),
-            'email' => $this->input->post('email'),
-            'password' => 'password', // Password default
-            'level' => PenggunaModel::LEVEL_LEADER
+            'email'         => $this->input->post('email'),
+            'password'      => 'password', // Password default
+            'level'         => PenggunaModel::LEVEL_LEADER
         ];
 
         if ($this->PenggunaModel->create($data)) {
@@ -102,12 +106,13 @@ class LeaderController extends Admin_Controller
     }
 
     /**
-     * Form edit Leader
+     * Menampilkan form edit Leader
      */
     public function edit($id)
     {
         $leader = $this->PenggunaModel->find($id);
 
+        // Validasi Leader
         if (!$leader || $leader->level != PenggunaModel::LEVEL_LEADER) {
             $this->session->set_flashdata('error', 'Data Leader tidak ditemukan!');
             redirect('admin/leader');
@@ -128,18 +133,20 @@ class LeaderController extends Admin_Controller
     }
 
     /**
-     * Update data Leader
+     * Memperbarui data Leader
      */
     public function update($id)
     {
         $leader = $this->PenggunaModel->find($id);
 
+        // Validasi Leader
         if (!$leader || $leader->level != PenggunaModel::LEVEL_LEADER) {
             $this->session->set_flashdata('error', 'Data Leader tidak ditemukan!');
             redirect('admin/leader');
             return;
         }
 
+        // Validasi input
         $this->form_validation->set_rules('nik', 'NIK', 'required|trim');
         $this->form_validation->set_rules('nama_pengguna', 'Nama Leader', 'required|trim');
         $this->form_validation->set_rules('email', 'Email', 'required|trim|valid_email');
@@ -149,30 +156,30 @@ class LeaderController extends Admin_Controller
             return;
         }
 
-        // Cek duplikasi NIK (exclude current ID)
+        // Cek NIK duplikat (exclude ID sendiri)
         if ($this->PenggunaModel->nikExists($this->input->post('nik'), $id)) {
             $this->session->set_flashdata('error', 'NIK sudah terdaftar di sistem!');
             redirect('admin/leader/edit/' . $id);
             return;
         }
 
-        // Cek duplikasi Email (exclude current ID)
+        // Cek Email duplikat (exclude ID sendiri)
         if ($this->PenggunaModel->emailExists($this->input->post('email'), $id)) {
             $this->session->set_flashdata('error', 'Email sudah terdaftar di sistem!');
             redirect('admin/leader/edit/' . $id);
             return;
         }
 
+        // Data update
         $data = [
-            'nik' => $this->input->post('nik'),
+            'nik'           => $this->input->post('nik'),
             'nama_pengguna' => $this->input->post('nama_pengguna'),
-            'email' => $this->input->post('email')
+            'email'         => $this->input->post('email')
         ];
 
         // Update password jika diisi
-        $new_password = $this->input->post('password');
-        if (!empty($new_password)) {
-            $data['password'] = $new_password;
+        if ($this->input->post('password')) {
+            $data['password'] = $this->input->post('password');
         }
 
         if ($this->PenggunaModel->updateById($id, $data)) {
@@ -185,29 +192,33 @@ class LeaderController extends Admin_Controller
     }
 
     /**
-     * Hapus data Leader
+     * Menghapus data Leader
      */
     public function delete($id)
     {
         $leader = $this->PenggunaModel->find($id);
 
+        // Validasi Leader
         if (!$leader || $leader->level != PenggunaModel::LEVEL_LEADER) {
             $this->session->set_flashdata('error', 'Data Leader tidak ditemukan!');
             redirect('admin/leader');
             return;
         }
 
-        // Cek apakah masih memimpin tim
+        // Cek apakah Leader masih memimpin tim
         $count_tim = $this->db->where('id_leader', $id)
                               ->count_all_results('tim');
         
         if ($count_tim > 0) {
-            $this->session->set_flashdata('error', "Leader tidak dapat dihapus karena masih memimpin {$count_tim} Tim!");
+            $this->session->set_flashdata(
+                'error',
+                "Leader tidak dapat dihapus karena masih memimpin {$count_tim} Tim!"
+            );
             redirect('admin/leader');
             return;
         }
 
-        // Hapus leader
+        // Hapus Leader
         if ($this->PenggunaModel->deleteById($id)) {
             $this->session->set_flashdata('success', 'Data Leader berhasil dihapus!');
         } else {
@@ -218,12 +229,13 @@ class LeaderController extends Admin_Controller
     }
 
     /**
-     * Detail Leader
+     * Menampilkan detail Leader
      */
     public function detail($id)
     {
         $leader = $this->PenggunaModel->find($id);
 
+        // Validasi Leader
         if (!$leader || $leader->level != PenggunaModel::LEVEL_LEADER) {
             $this->session->set_flashdata('error', 'Data Leader tidak ditemukan!');
             redirect('admin/leader');
@@ -238,17 +250,17 @@ class LeaderController extends Admin_Controller
             ['title' => 'Detail']
         ]);
 
-        // Ambil tim yang dipimpin leader ini
+        // Ambil tim yang dipimpin Leader
         $teams = $this->TimModel->getByLeader($id);
-        $team = !empty($teams) ? $teams[0] : null; // Leader hanya pegang 1 tim
-        
-        // Jika ada tim, ambil detail lengkap
+        $team  = !empty($teams) ? $teams[0] : null;
+
+        // Ambil detail lengkap tim (leader, supervisor, anggota)
         if ($team) {
             $team = $this->TimModel->getByIdWithDetails($team->id_tim);
         }
-        
+
         $data['leader'] = $leader;
-        $data['team'] = $team;
+        $data['team']   = $team;
         
         render_layout('admin/leader/detail', $data);
     }

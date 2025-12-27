@@ -40,9 +40,9 @@
                                         </div>
                                     </td>
                                     <td>
-                                        <?php if (!empty($leader->tim)): ?>
+                                        <?php if (!empty($leader->id_tim)): ?>
                                             <span class="badge badge-soft-info">
-                                                <i class="fe fe-users"></i> <?= htmlspecialchars($leader->tim->nama_tim) ?>
+                                                <i class="fe fe-users"></i> <?= htmlspecialchars($leader->nama_tim) ?>
                                             </span>
                                         <?php else: ?>
                                             <span class="text-muted"><i>Belum ada tim</i></span>
