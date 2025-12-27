@@ -30,6 +30,7 @@
                                 <th>NIK</th>
                                 <th>Nama CS</th>
                                 <th>Tim</th>
+                                <th>Supervisor</th>
                                 <th>Produk</th>
                                 <th>Kanal</th>
                                 <th>Total Penilaian</th>
@@ -45,25 +46,21 @@
                                         <td>
                                             <div class="d-flex align-items-center">
                                                 <div class="avatar avatar-sm mr-2">
-                                                    <img src="https://ui-avatars.com/api/?name=<?= urlencode($cs->nama_cs) ?>&background=random" 
+                                                    <img src="https://ui-avatars.com/api/?name=<?= urlencode($cs->nama_cs) ?>&background=random"
                                                          alt="Avatar" class="avatar-img rounded-circle">
                                                 </div>
                                                 <strong><?= htmlspecialchars($cs->nama_cs) ?></strong>
                                             </div>
                                         </td>
                                         <td><?= htmlspecialchars($cs->nama_tim) ?></td>
+                                        <td><span class="badge badge-soft-secondary"><?= htmlspecialchars($cs->nama_supervisor) ?></span></td>
                                         <td><span class="badge badge-soft-primary"><?= htmlspecialchars($cs->nama_produk) ?></span></td>
                                         <td><span class="badge badge-soft-info"><?= htmlspecialchars($cs->nama_kanal) ?></span></td>
                                         <td>
-                                            <?php
-                                            // Get evaluation count
-                                            $this->load->model('NilaiModel');
-                                            $stats = $this->NilaiModel->getStatsByCustomerService($cs->id_cs);
-                                            ?>
-                                            <span class="badge badge-soft-success"><?= $stats->total_penilaian ?> penilaian</span>
+                                            <span class="badge badge-soft-success"><?= $cs->total_penilaian ?> penilaian</span>
                                         </td>
                                         <td>
-                                            <a href="<?= base_url('supervisor/customer-service/detail/' . $cs->id_cs) ?>" 
+                                            <a href="<?= base_url('junior-manager/customer-service/detail/' . $cs->id_cs) ?>"
                                                class="btn btn-sm btn-primary" title="Detail">
                                                 <i class="fe fe-eye"></i>
                                             </a>
@@ -72,7 +69,7 @@
                                 <?php endforeach; ?>
                             <?php else: ?>
                                 <tr>
-                                    <td colspan="8" class="text-center">
+                                    <td colspan="9" class="text-center">
                                         <div class="py-4 text-muted">
                                             <i class="fe fe-inbox fe-32 mb-3"></i>
                                             <p>Belum ada data customer service</p>
@@ -90,7 +87,7 @@
 
 <script>
 $(document).ready(function() {
-    $('#dataTable').DataTable({
+    $('#dataTable-1').DataTable({
         "language": {
             "url": "//cdn.datatables.net/plug-ins/1.10.24/i18n/Indonesian.json"
         },

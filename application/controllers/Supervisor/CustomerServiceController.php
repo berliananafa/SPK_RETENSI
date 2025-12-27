@@ -6,7 +6,7 @@ class CustomerServiceController extends Supervisor_Controller
 	public function __construct()
 	{
 		parent::__construct();
-		$this->load->model(['CustomerServiceModel', 'TimModel', 'NilaiModel']);
+		$this->load->model(['CustomerServiceModel', 'TimModel', 'NilaiModel', 'RankingModel']);
 	}
 
 	/**
@@ -23,11 +23,7 @@ class CustomerServiceController extends Supervisor_Controller
 		enable_datatables();
 
 		$supervisorId = $this->session->userdata('user_id');
-
-		// Get CS options for filter
 		$data['teams'] = $this->TimModel->getBySupervisorWithDetails($supervisorId);
-		
-		// Get all customer service under this supervisor
 		$data['customer_services'] = $this->CustomerServiceModel->getBySupervisor($supervisorId);
 		$data['total_cs'] = count($data['customer_services']);
 
@@ -43,16 +39,6 @@ class CustomerServiceController extends Supervisor_Controller
 			show_404();
 		}
 
-		$supervisorId = $this->session->userdata('user_id');
-
-		// Get CS detail with verification
-		$cs = $this->CustomerServiceModel->getCsBySupervisor($id_cs, $supervisorId);
-
-		if (!$cs) {
-			$this->session->set_flashdata('error', 'Data Customer Service tidak ditemukan atau Anda tidak memiliki akses.');
-			redirect('supervisor/customer-service');
-		}
-
 		set_page_title('Detail Customer Service - ' . $cs->nama_cs);
 		set_breadcrumb([
 			['title' => 'Dashboard', 'url' => base_url('supervisor/dashboard')],
@@ -62,13 +48,32 @@ class CustomerServiceController extends Supervisor_Controller
 
 		enable_datatables();
 
+		$supervisorId = $this->session->userdata('user_id');
+		$cs = $this->CustomerServiceModel->getCsBySupervisor($id_cs, $supervisorId);
+		$latestPeriodeObj = $this->RankingModel->getLatestPeriodeBySupervisor($supervisorId);
+
+		if (!$cs) {
+			$this->session->set_flashdata('error', 'Data Customer Service tidak ditemukan atau Anda tidak memiliki akses.');
+			redirect('supervisor/customer-service');
+		}
+
 		$data['cs'] = $cs;
-
-		// Get evaluation history
 		$data['evaluations'] = $this->NilaiModel->getByCustomerService($id_cs);
-
-		// Get performance statistics
 		$data['stats'] = $this->NilaiModel->getStatsByCustomerService($id_cs);
+		$data['selected_periode'] = $latestPeriodeObj->periode ?? null;
+		$data['ranking'] = null;
+
+		if (!empty($data['selected_periode'])) {
+			$data['ranking'] = $this->db->select('r.*')
+				->from('ranking r')
+				->where('r.id_cs', $id_cs)
+				->where('r.periode', $data['selected_periode'])
+				->where('r.status', 'published')
+				->order_by('r.peringkat', 'ASC')
+				->limit(1)
+				->get()
+				->row();
+		}
 
 		render_layout('supervisor/customer_service/detail', $data);
 	}

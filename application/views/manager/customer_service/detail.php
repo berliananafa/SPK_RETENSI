@@ -6,12 +6,12 @@
                 <div class="card shadow">
                     <div class="card-body text-center">
                         <div class="avatar avatar-xl mx-auto mb-3">
-                            <img src="https://ui-avatars.com/api/?name=<?= urlencode($cs->nama_cs) ?>&size=128&background=random" 
+                            <img src="https://ui-avatars.com/api/?name=<?= urlencode($cs->nama_cs) ?>&size=128&background=random"
                                  alt="Avatar" class="avatar-img rounded-circle">
                         </div>
                         <h4 class="mb-1 card-title"><?= htmlspecialchars($cs->nama_cs) ?></h4>
                         <p class="mb-3 text-muted small">NIK: <?= htmlspecialchars($cs->nik) ?></p>
-                        
+
                         <div class="mb-4">
                             <span class="badge badge-soft-primary"><?= htmlspecialchars($cs->nama_produk) ?></span>
                             <span class="badge badge-soft-info"><?= htmlspecialchars($cs->nama_kanal) ?></span>
@@ -26,6 +26,14 @@
                                 </div>
                                 <div class="col-7">
                                     <span class="small"><?= htmlspecialchars($cs->nama_tim) ?></span>
+                                </div>
+                            </div>
+                            <div class="mb-2 row">
+                                <div class="col-5">
+                                    <strong class="small">Supervisor:</strong>
+                                </div>
+                                <div class="col-7">
+                                    <span class="badge badge-soft-secondary small"><?= htmlspecialchars($cs->nama_supervisor) ?></span>
                                 </div>
                             </div>
                             <div class="mb-2 row">
@@ -58,7 +66,7 @@
                                 <strong class="text-success"><?= number_format($stats->nilai_max, 0, ',', '.') ?></strong>
                             </div>
                             <div class="progress" style="height: 5px;">
-                                <div class="progress-bar bg-success" role="progressbar" 
+                                <div class="progress-bar bg-success" role="progressbar"
                                      style="width: <?= ($stats->nilai_max > 0) ? ($stats->nilai_max / 100 * 100) : 0 ?>%"></div>
                             </div>
                         </div>
@@ -68,7 +76,7 @@
                                 <strong class="text-warning"><?= number_format($stats->rata_rata_nilai, 0, ',', '.') ?></strong>
                             </div>
                             <div class="progress" style="height: 5px;">
-                                <div class="progress-bar bg-warning" role="progressbar" 
+                                <div class="progress-bar bg-warning" role="progressbar"
                                      style="width: <?= ($stats->rata_rata_nilai > 0) ? ($stats->rata_rata_nilai / 100 * 100) : 0 ?>%"></div>
                             </div>
                         </div>
@@ -78,7 +86,7 @@
                                 <strong class="text-danger"><?= number_format($stats->nilai_min, 0, ',', '.') ?></strong>
                             </div>
                             <div class="progress" style="height: 5px;">
-                                <div class="progress-bar bg-danger" role="progressbar" 
+                                <div class="progress-bar bg-danger" role="progressbar"
                                      style="width: <?= ($stats->nilai_min > 0) ? ($stats->nilai_min / 100 * 100) : 0 ?>%"></div>
                             </div>
                         </div>
