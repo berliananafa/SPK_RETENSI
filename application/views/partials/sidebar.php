@@ -25,7 +25,7 @@ if ($user_level === 'admin') {
 			<a class="mx-auto mt-2 text-center navbar-brand flex-fill" href="<?= base_url() ?>">
 				<img src="<?= base_url('assets/img/ethos_logo.png') ?>" alt="Ethos Logo"
 					style="max-width: 120px; height: auto;" class="mb-2">
-				<!-- <h4 class="mb-0 text-primary">SPK Retensi CS</h4> -->
+				<!-- <h4 class="mb-0 text-primary">SPK Retensi</h4> -->
 			</a>
 		</div>
 

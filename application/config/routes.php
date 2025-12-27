@@ -181,31 +181,26 @@ $route['admin/laporan/print'] = 'admin/LaporanController/print';
 // ============================================================================
 $route['junior-manager'] = 'manager/DashboardController';
 $route['junior-manager/dashboard'] = 'manager/DashboardController/index';
-
 // Supervisor Management
 $route['junior-manager/supervisor'] = 'manager/SupervisorController/index';
 $route['junior-manager/supervisor/detail/(:num)'] = 'manager/SupervisorController/detail/$1';
-
 // Kriteria Management (Approval)
 $route['junior-manager/kriteria'] = 'manager/KriteriaController/index';
 $route['junior-manager/kriteria/detail/(:num)'] = 'manager/KriteriaController/detail/$1';
 $route['junior-manager/kriteria/approve/(:num)'] = 'manager/KriteriaController/approve/$1';
 $route['junior-manager/kriteria/reject/(:num)'] = 'manager/KriteriaController/reject/$1';
-
 // Team Overview
 $route['junior-manager/team-overview'] = 'manager/TeamOverviewController/index';
 $route['junior-manager/team-overview/detail/(:num)'] = 'manager/TeamOverviewController/detail/$1';
-
-// Penilaian
+// Tim & Customer Service (Junior Manager)
+$route['junior-manager/customer-service'] = 'manager/CustomerServiceController/index';
+$route['junior-manager/customer-service/detail/(:num)'] = 'manager/CustomerServiceController/detail/$1';
+// Monitoring & Reports (Read-Only)
 $route['junior-manager/nilai'] = 'manager/NilaiController/index';
-$route['junior-manager/nilai/input'] = 'manager/NilaiController/input';
-$route['junior-manager/nilai/history'] = 'manager/NilaiController/history';
-$route['junior-manager/nilai/get-sub-kriteria/(:num)'] = 'manager/NilaiController/get_sub_kriteria/$1';
-$route['junior-manager/nilai/save'] = 'manager/NilaiController/save';
-$route['junior-manager/nilai/delete/(:num)'] = 'manager/NilaiController/delete/$1';
-
-// Ranking
 $route['junior-manager/ranking'] = 'manager/RankingController/index';
+$route['junior-manager/laporan'] = 'manager/LaporanController/index';
+$route['junior-manager/laporan/export'] = 'manager/LaporanController/export_excel';
+$route['junior-manager/laporan/export-excel'] = 'manager/LaporanController/export_excel';
 
 // ============================================================================
 // SUPERVISOR ROUTES
@@ -228,6 +223,8 @@ $route['supervisor/customer-service/detail/(:num)'] = 'supervisor/CustomerServic
 // Monitoring & Ranking
 $route['supervisor/nilai'] = 'supervisor/NilaiController/index';
 $route['supervisor/ranking'] = 'supervisor/RankingController/index';
+$route['supervisor/ranking/approve/(:num)'] = 'supervisor/RankingController/approve/$1';
+$route['supervisor/ranking/reject/(:num)'] = 'supervisor/RankingController/reject/$1';
 
 // Reports
 $route['supervisor/laporan'] = 'supervisor/LaporanController/index';
@@ -244,3 +241,5 @@ $route['leader/anggota'] = 'leader/AnggotaController/index';
 $route['leader/customer-service'] = 'leader/CustomerServiceController/index';
 
 $route['leader/ranking'] = 'leader/RankingController/index';
+$route['leader/ranking/approve/(:num)'] = 'leader/RankingController/approve/$1';
+$route['leader/ranking/reject/(:num)'] = 'leader/RankingController/reject/$1';
