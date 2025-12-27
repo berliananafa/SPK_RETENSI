@@ -12,6 +12,10 @@ class KriteriaModel extends MY_Model
         'bobot',
         'jenis_kriteria',
         'deskripsi',
+        'status_approval',
+        'approved_by',
+        'approved_at',
+        'rejection_note',
     ];
 
     public function __construct()

@@ -186,6 +186,12 @@ $route['junior-manager/dashboard'] = 'manager/DashboardController/index';
 $route['junior-manager/supervisor'] = 'manager/SupervisorController/index';
 $route['junior-manager/supervisor/detail/(:num)'] = 'manager/SupervisorController/detail/$1';
 
+// Kriteria Management (Approval)
+$route['junior-manager/kriteria'] = 'manager/KriteriaController/index';
+$route['junior-manager/kriteria/detail/(:num)'] = 'manager/KriteriaController/detail/$1';
+$route['junior-manager/kriteria/approve/(:num)'] = 'manager/KriteriaController/approve/$1';
+$route['junior-manager/kriteria/reject/(:num)'] = 'manager/KriteriaController/reject/$1';
+
 // Team Overview
 $route['junior-manager/team-overview'] = 'manager/TeamOverviewController/index';
 $route['junior-manager/team-overview/detail/(:num)'] = 'manager/TeamOverviewController/detail/$1';

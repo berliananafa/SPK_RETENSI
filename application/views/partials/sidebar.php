@@ -221,45 +221,62 @@ if ($user_level === 'admin') {
 				</a>
 			</li>
 			<li
-				class="nav-item w-100 <?= (strpos($current_url, 'junior-manager/team-overview') !== false) ? 'active' : '' ?>">
-				<a class="nav-link" href="<?= base_url('junior-manager/team-overview') ?>">
-					<i class="fe fe-grid"></i>
-					<span class="ml-3 item-text">Overview Tim</span>
+				class="nav-item dropdown <?= (strpos($current_url, 'junior-manager/team-overview') !== false || strpos($current_url, 'junior-manager/customer-service') !== false) ? 'active' : '' ?>">
+				<a href="#team-jm" data-toggle="collapse"
+					aria-expanded="<?= (strpos($current_url, 'junior-manager/team-overview') !== false || strpos($current_url, 'junior-manager/customer-service') !== false) ? 'true' : 'false' ?>"
+					class="dropdown-toggle nav-link">
+					<i class="fe fe-users"></i>
+					<span class="ml-3 item-text">Tim & CS</span>
+				</a>
+				<ul class="pl-4 collapse list-unstyled w-100 <?= (strpos($current_url, 'junior-manager/team-overview') !== false || strpos($current_url, 'junior-manager/customer-service') !== false) ? 'show' : '' ?>"
+					id="team-jm">
+					<li
+						class="nav-item <?= (strpos($current_url, 'junior-manager/team-overview') !== false) ? 'active' : '' ?>">
+						<a class="pl-3 nav-link" href="<?= base_url('junior-manager/team-overview') ?>">
+							<span class="ml-1 item-text">Overview Tim</span>
+						</a>
+					</li>
+					<li
+						class="nav-item <?= (strpos($current_url, 'junior-manager/customer-service') !== false) ? 'active' : '' ?>">
+						<a class="pl-3 nav-link" href="<?= base_url('junior-manager/customer-service') ?>">
+							<span class="ml-1 item-text">Customer Service</span>
+						</a>
+					</li>
+				</ul>
+			</li>
+		</ul>
+
+		<p class="mt-4 mb-1 text-muted nav-heading"><span>Approval</span></p>
+		<ul class="navbar-nav flex-fill w-100">
+			<li
+				class="nav-item w-100 <?= (strpos($current_url, 'junior-manager/kriteria') !== false) ? 'active' : '' ?>">
+				<a class="nav-link" href="<?= base_url('junior-manager/kriteria') ?>">
+					<i class="fe fe-check-square"></i>
+					<span class="ml-3 item-text">Data Kriteria</span>
 				</a>
 			</li>
 		</ul>
 
-		<p class="mt-4 mb-1 text-muted nav-heading"><span>Penilaian</span></p>
+		<p class="mt-4 mb-1 text-muted nav-heading"><span>Monitoring & Laporan</span></p>
 		<ul class="navbar-nav flex-fill w-100">
-			<li
-				class="nav-item dropdown <?= (strpos($current_url, 'junior-manager/nilai') !== false) ? 'active' : '' ?>">
-				<a href="#nilai-jm" data-toggle="collapse"
-					aria-expanded="<?= (strpos($current_url, 'junior-manager/nilai') !== false) ? 'true' : 'false' ?>"
-					class="dropdown-toggle nav-link">
-					<i class="fe fe-edit"></i>
-					<span class="ml-3 item-text">Input Nilai</span>
+			<li class="nav-item w-100 <?= (strpos($current_url, 'junior-manager/nilai') !== false) ? 'active' : '' ?>">
+				<a class="nav-link" href="<?= base_url('junior-manager/nilai') ?>">
+					<i class="fe fe-eye"></i>
+					<span class="ml-3 item-text">Monitor Penilaian</span>
 				</a>
-				<ul class="pl-4 collapse list-unstyled w-100 <?= (strpos($current_url, 'junior-manager/nilai') !== false) ? 'show' : '' ?>"
-					id="nilai-jm">
-					<li
-						class="nav-item <?= (strpos($current_url, 'junior-manager/nilai/input') !== false) ? 'active' : '' ?>">
-						<a class="pl-3 nav-link" href="<?= base_url('junior-manager/nilai/input') ?>">
-							<span class="ml-1 item-text">Input Penilaian</span>
-						</a>
-					</li>
-					<li
-						class="nav-item <?= (strpos($current_url, 'junior-manager/nilai/history') !== false) ? 'active' : '' ?>">
-						<a class="pl-3 nav-link" href="<?= base_url('junior-manager/nilai/history') ?>">
-							<span class="ml-1 item-text">History Penilaian</span>
-						</a>
-					</li>
-				</ul>
 			</li>
 			<li
 				class="nav-item w-100 <?= (strpos($current_url, 'junior-manager/ranking') !== false) ? 'active' : '' ?>">
 				<a class="nav-link" href="<?= base_url('junior-manager/ranking') ?>">
 					<i class="fe fe-award"></i>
 					<span class="ml-3 item-text">Hasil Ranking</span>
+				</a>
+			</li>
+			<li
+				class="nav-item w-100 <?= (strpos($current_url, 'junior-manager/laporan') !== false) ? 'active' : '' ?>">
+				<a class="nav-link" href="<?= base_url('junior-manager/laporan') ?>">
+					<i class="fe fe-file-text"></i>
+					<span class="ml-3 item-text">Laporan Performa</span>
 				</a>
 			</li>
 		</ul>
