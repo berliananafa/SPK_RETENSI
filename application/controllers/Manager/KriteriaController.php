@@ -183,6 +183,7 @@ class KriteriaController extends Manager_Controller
             ['title' => 'Kriteria', 'url' => base_url('junior-manager/kriteria')],
             ['title' => 'Detail']
         ]);
+		enable_datatables();
 		enable_sweetalert();
 		
         // Load model Sub Kriteria
