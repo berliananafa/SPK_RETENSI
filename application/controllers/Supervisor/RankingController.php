@@ -216,7 +216,7 @@ class RankingController extends Supervisor_Controller
 				'status' => 'published'
 			];
 
-			if ($this->RankingModel->update($rank->id_ranking, $update)) {
+			if ($this->RankingModel->updateById($rank->id_ranking, $update)) {
 				$updated++;
 			}
 		}
@@ -284,7 +284,7 @@ class RankingController extends Supervisor_Controller
 			'status' => 'published'
 		];
 
-		$saved = $this->RankingModel->update($id, $update);
+		$saved = $this->RankingModel->updateById($id, $update);
 		if ($saved) {
 			$this->output->set_content_type('application/json');
 			echo json_encode(['status' => 'success', 'message' => 'Ranking berhasil disetujui dan dipublikasikan']);
@@ -355,7 +355,7 @@ class RankingController extends Supervisor_Controller
 			'status' => 'rejected_supervisor'
 		];
 
-		$saved = $this->RankingModel->update($id, $update);
+		$saved = $this->RankingModel->updateById($id, $update);
 		if ($saved) {
 			$this->output->set_content_type('application/json');
 			echo json_encode(['status' => 'success', 'message' => 'Ranking berhasil ditolak']);

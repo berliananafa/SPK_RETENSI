@@ -68,9 +68,12 @@
 									<th>Nama CS</th>
 									<th>Produk</th>
 									<th>Tim</th>
-									<th>Kanal</th>
-									<th>Nilai Akhir</th>
-									<th>Status</th>
+									<th>NCF (90%)</th>
+									<th>NSF (10%)</th>
+									<th>Skor Akhir</th>
+									<th width="10%" class="text-center">Approval Leader</th>
+									<th width="10%" class="text-center">Approval SPV</th>
+									<th width="8%" class="text-center">Aksi</th>
 								</tr>
 							</thead>
 							<tbody>
@@ -101,22 +104,63 @@
 										</td>
 										<td><?= htmlspecialchars($rank->nama_produk ?? '-') ?></td>
 										<td><?= htmlspecialchars($rank->nama_tim ?? '-') ?></td>
+										<td><small class="text-danger"><?= number_format($rank->ncf ?? 0, 2, ',', '.') ?></small></td>
+										<td><small class="text-primary"><?= number_format($rank->nsf ?? 0, 2, ',', '.') ?></small></td>
 										<td>
-											<small class="text-muted"><?= htmlspecialchars($rank->nama_kanal ?? '-') ?></small>
+											<div class="progress" style="height: 25px;">
+												<?php
+												$max_score = !empty($rankings) ? max(array_column($rankings, 'skor_akhir') ?: array_column($rankings, 'nilai_akhir')) : 1;
+												$current_score = $rank->skor_akhir ?? $rank->nilai_akhir ?? 0;
+												$percentage = ($current_score / $max_score) * 100;
+												?>
+												<div class="progress-bar bg-success" role="progressbar"
+													style="width: <?= $percentage ?>%;" aria-valuenow="<?= $percentage ?>"
+													aria-valuemin="0" aria-valuemax="100">
+													<strong><?= number_format($current_score, 2, ',', '.') ?></strong>
+												</div>
+											</div>
 										</td>
-										<td>
-											<strong><?= number_format($rank->nilai_akhir, 2, ',', '.') ?></strong>
-										</td>
-										<td>
-											<?php if (($rank->status ?? '') === 'approved'): ?>
-												<span class="badge badge-success">
-													<i class="fe fe-check"></i> Disetujui
+										<td class="text-center">
+											<?php
+											$rankStatus = $rank->status ?? 'draft';
+											if ($rankStatus === 'rejected_leader'): ?>
+												<span class="badge badge-danger" title="Ditolak oleh <?= htmlspecialchars($rank->approved_by_leader_name ?? '') ?>">
+													<i class="fe fe-x"></i> Ditolak
 												</span>
+												<br><small class="text-muted"><?= !empty($rank->approved_at_leader) ? date('d/m/Y', strtotime($rank->approved_at_leader)) : '' ?></small>
+											<?php elseif (in_array($rankStatus, ['pending_supervisor', 'rejected_supervisor', 'published'])): ?>
+												<span class="badge badge-success" title="Disetujui oleh <?= htmlspecialchars($rank->approved_by_leader_name ?? '') ?>">
+													<i class="fe fe-check"></i> Approved
+												</span>
+												<br><small class="text-muted"><?= !empty($rank->approved_at_leader) ? date('d/m/Y', strtotime($rank->approved_at_leader)) : '' ?></small>
 											<?php else: ?>
 												<span class="badge badge-warning">
-													<i class="fe fe-clock"></i> Menunggu
+													<i class="fe fe-clock"></i> Pending
 												</span>
 											<?php endif; ?>
+										</td>
+										<td class="text-center">
+											<?php
+											if ($rankStatus === 'rejected_supervisor'): ?>
+												<span class="badge badge-danger" title="Ditolak oleh <?= htmlspecialchars($rank->approved_by_supervisor_name ?? '') ?>">
+													<i class="fe fe-x"></i> Ditolak
+												</span>
+												<br><small class="text-muted"><?= !empty($rank->approved_at_supervisor) ? date('d/m/Y', strtotime($rank->approved_at_supervisor)) : '' ?></small>
+											<?php elseif ($rankStatus === 'published'): ?>
+												<span class="badge badge-success" title="Disetujui oleh <?= htmlspecialchars($rank->approved_by_supervisor_name ?? '') ?>">
+													<i class="fe fe-check"></i> Approved
+												</span>
+												<br><small class="text-muted"><?= !empty($rank->approved_at_supervisor) ? date('d/m/Y', strtotime($rank->approved_at_supervisor)) : '' ?></small>
+											<?php else: ?>
+												<span class="badge badge-warning">
+													<i class="fe fe-clock"></i> Pending
+												</span>
+											<?php endif; ?>
+										</td>
+										<td class="text-center">
+											<button class="btn btn-sm btn-info btn-detail" data-id="<?= $rank->id_cs ?>" title="Detail">
+												<i class="fe fe-eye"></i>
+											</button>
 										</td>
 									</tr>
 								<?php endforeach; ?>
@@ -128,6 +172,29 @@
 						<i class="fe fe-alert-circle"></i> Belum ada data ranking untuk periode ini.
 					</div>
 				<?php endif; ?>
+			</div>
+		</div>
+	</div>
+</div>
+
+<!-- Modal Detail Ranking -->
+<div class="modal fade" id="modalDetail" tabindex="-1" role="dialog" aria-hidden="true">
+	<div class="modal-dialog modal-xl" role="document">
+		<div class="modal-content">
+			<div class="modal-header bg-primary text-white">
+				<h5 class="modal-title">
+					<i class="fe fe-bar-chart-2"></i> Detail Perhitungan Ranking
+				</h5>
+				<button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+					<span aria-hidden="true">&times;</span>
+				</button>
+			</div>
+			<div class="modal-body" id="detailContent">
+				<div class="text-center py-5">
+					<div class="spinner-border text-primary" role="status">
+						<span class="sr-only">Loading...</span>
+					</div>
+				</div>
 			</div>
 		</div>
 	</div>
@@ -161,6 +228,44 @@ ob_start();
 			$('#filterProduk').val('');
 
 			window.location.href = '<?= base_url('junior-manager/ranking') ?>';
+		});
+
+		// Detail button - Load detail modal
+		$('.btn-detail').on('click', function(e) {
+			e.preventDefault();
+			const id = $(this).data('id');
+			const periode = '<?= htmlspecialchars($selected_periode ?? date('Y-m')) ?>';
+
+			// Show modal
+			$('#modalDetail').modal('show');
+
+			// Load content via AJAX
+			$('#detailContent').html(`
+				<div class="text-center py-5">
+					<div class="spinner-border text-primary" role="status">
+						<span class="sr-only">Loading...</span>
+					</div>
+				</div>
+			`);
+
+			$.ajax({
+				url: '<?= base_url('junior-manager/ranking/detail') ?>',
+				method: 'GET',
+				data: {
+					id: id,
+					periode: periode
+				},
+				success: function(response) {
+					$('#detailContent').html(response);
+				},
+				error: function(xhr) {
+					$('#detailContent').html(`
+						<div class="alert alert-danger">
+							<i class="fe fe-alert-circle"></i> Gagal memuat data detail.
+						</div>
+					`);
+				}
+			});
 		});
 	});
 </script>

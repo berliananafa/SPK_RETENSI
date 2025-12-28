@@ -520,16 +520,25 @@ class RankingModel extends MY_Model
 	 */
 	public function getByPeriodeByManager($periode, $managerId, $filter = [])
 	{
-		$this->db->select('r.*, cs.nik, cs.nama_cs, t.nama_tim, p.nama_produk, k.nama_kanal')
+		// Include all rankings (including rejected) with approval info
+		$this->db->select('r.*,
+			cs.nik, cs.nama_cs,
+			t.nama_tim,
+			p.nama_produk,
+			k.nama_kanal,
+			leader.nama_pengguna as approved_by_leader_name,
+			supervisor_user.nama_pengguna as approved_by_supervisor_name')
 			->from("{$this->table} r")
 			->join('customer_service cs', 'r.id_cs = cs.id_cs')
 			->join('tim t', 'cs.id_tim = t.id_tim')
 			->join('produk p', 'cs.id_produk = p.id_produk')
 			->join('kanal k', 'cs.id_kanal = k.id_kanal')
 			->join('pengguna supervisor', 't.id_supervisor = supervisor.id_user')
+			->join('pengguna leader', 'r.approved_by_leader = leader.id_user', 'left')
+			->join('pengguna supervisor_user', 'r.approved_by_supervisor = supervisor_user.id_user', 'left')
 			->where('supervisor.id_atasan', $managerId)
-			->where('r.periode', $periode)
-			->where('r.status', 'published');
+			->where('r.periode', $periode);
+		// Remove status filter to show all rankings including rejected
 
 		if (!empty($filter['id_produk'])) {
 			$this->db->where('cs.id_produk', $filter['id_produk']);

@@ -198,6 +198,7 @@ $route['junior-manager/customer-service/detail/(:num)'] = 'manager/CustomerServi
 // Monitoring & Reports (Read-Only)
 $route['junior-manager/nilai'] = 'manager/NilaiController/index';
 $route['junior-manager/ranking'] = 'manager/RankingController/index';
+$route['junior-manager/ranking/detail'] = 'manager/RankingController/detail';
 $route['junior-manager/laporan'] = 'manager/LaporanController/index';
 $route['junior-manager/laporan/export'] = 'manager/LaporanController/export_excel';
 $route['junior-manager/laporan/export-excel'] = 'manager/LaporanController/export_excel';

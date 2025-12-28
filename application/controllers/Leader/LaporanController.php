@@ -162,10 +162,11 @@ class LaporanController extends Leader_Controller
      */
     private function getTopPerformers($periode, $teamId, $idProduk = null, $limit = 5)
     {
-        $this->db->select('ranking.*, cs.nama_cs, cs.nik, produk.nama_produk, ranking.nilai_akhir as avg_skor')
+        $this->db->select('ranking.*, cs.nama_cs, cs.nik, produk.nama_produk, tim.nama_tim, ranking.nilai_akhir as avg_skor')
             ->from('ranking')
             ->join('customer_service cs', 'ranking.id_cs = cs.id_cs', 'left')
             ->join('produk produk', 'cs.id_produk = produk.id_produk', 'left')
+            ->join('tim tim', 'cs.id_tim = tim.id_tim', 'left')
             ->where('ranking.periode', $periode)
             ->where('cs.id_tim', $teamId)
             ->where_in('ranking.status', ['pending_leader', 'pending_supervisor', 'published']);
@@ -184,10 +185,11 @@ class LaporanController extends Leader_Controller
      */
     private function getBottomPerformers($periode, $teamId, $idProduk = null, $limit = 5)
     {
-        $this->db->select('ranking.*, cs.nama_cs, cs.nik, produk.nama_produk, ranking.nilai_akhir as avg_skor')
+        $this->db->select('ranking.*, cs.nama_cs, cs.nik, produk.nama_produk, tim.nama_tim, ranking.nilai_akhir as avg_skor')
             ->from('ranking')
             ->join('customer_service cs', 'ranking.id_cs = cs.id_cs', 'left')
             ->join('produk produk', 'cs.id_produk = produk.id_produk', 'left')
+            ->join('tim tim', 'cs.id_tim = tim.id_tim', 'left')
             ->where('ranking.periode', $periode)
             ->where('cs.id_tim', $teamId)
             ->where_in('ranking.status', ['pending_leader', 'pending_supervisor', 'published']);
