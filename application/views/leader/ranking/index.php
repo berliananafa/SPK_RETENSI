@@ -51,7 +51,7 @@
 									<th>Kanal</th>
 									<th>Nilai Akhir</th>
 									<th>Status</th>
-									<th width="15%" class="text-center">Aksi</th>
+									<th width="20%" class="text-center">Aksi</th>
 								</tr>
 							</thead>
 							<tbody>
@@ -74,7 +74,7 @@
 												<strong><?= $index + 1 ?></strong>
 											<?php endif; ?>
 										</td>
-										<td><span class="badge badge-primary"><?= htmlspecialchars($rank->nik) ?></span></td>
+										<td><strong><?= htmlspecialchars($rank->nik) ?></strong></td>
 										<td>
 											<div class="d-flex align-items-center">
 												<strong><?= htmlspecialchars($rank->nama_cs) ?></strong>
@@ -94,7 +94,7 @@
 												</span>
 											<?php elseif ($rank->status === 'pending_supervisor'): ?>
 												<span class="badge badge-info">
-													<i class="fe fe-arrow-up"></i> Di Supervisor
+													<i class="fe fe-arrow-up"></i> Menungguu Approval Supervisor
 												</span>
 											<?php elseif ($rank->status === 'rejected_leader'): ?>
 												<span class="badge badge-danger">
@@ -109,17 +109,20 @@
 											<?php endif; ?>
 										</td>
 										<td class="text-center">
+											<button class="btn btn-sm btn-info btn-detail mb-1" data-id="<?= $rank->id_cs ?>" title="Detail">
+												<i class="fe fe-eye"></i>
+											</button>
 											<?php if ($rank->status === 'pending_leader'): ?>
-												<button class="btn btn-sm btn-success btn-approve" data-id="<?= $rank->id_ranking ?>">
-													<i class="fe fe-check"></i> Setujui
+												<button class="btn btn-sm btn-success btn-approve mb-1" data-id="<?= $rank->id_ranking ?>">
+													<i class="fe fe-check"></i>
 												</button>
-												<button class="btn btn-sm btn-danger btn-reject" data-id="<?= $rank->id_ranking ?>">
-													<i class="fe fe-x"></i> Tolak
+												<button class="btn btn-sm btn-danger btn-reject mb-1" data-id="<?= $rank->id_ranking ?>">
+													<i class="fe fe-x"></i>
 												</button>
 											<?php elseif (!empty($rank->approved_by_leader)): ?>
-												<span class="text-success"><i class="fe fe-check-circle"></i> Approved</span>
+												<br><span class="text-success small"><i class="fe fe-check-circle"></i> Approved</span>
 											<?php else: ?>
-												<span class="text-muted">-</span>
+												<!-- <br><span class="text-muted small">-</span> -->
 											<?php endif; ?>
 										</td>
 									</tr>
@@ -155,9 +158,32 @@
 			</div>
 			<div class="modal-footer">
 				<button type="button" class="btn btn-secondary" data-dismiss="modal">Batal</button>
-				<button type="button" class="btn btn-danger" id="btnConfirmReject">
+				<button type="button" class="btn btn-danger" id="btnConfirmReject" data-url="<?= base_url('leader/ranking/reject/') ?>">
 					<i class="fe fe-x"></i> Tolak Ranking
 				</button>
+			</div>
+		</div>
+	</div>
+</div>
+
+<!-- Modal Detail Ranking -->
+<div class="modal fade" id="modalDetail" tabindex="-1" role="dialog" aria-hidden="true">
+	<div class="modal-dialog modal-xl" role="document">
+		<div class="modal-content">
+			<div class="modal-header bg-primary text-white">
+				<h5 class="modal-title">
+					<i class="fe fe-bar-chart-2"></i> Detail Perhitungan Ranking
+				</h5>
+				<button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+					<span aria-hidden="true">&times;</span>
+				</button>
+			</div>
+			<div class="modal-body" id="detailContent">
+				<div class="text-center py-5">
+					<div class="spinner-border text-primary" role="status">
+						<span class="sr-only">Loading...</span>
+					</div>
+				</div>
 			</div>
 		</div>
 	</div>
@@ -235,6 +261,7 @@ ob_start();
 		// Confirm reject
 		$('#btnConfirmReject').on('click', function() {
 			const note = $('#rejectNote').val().trim();
+			const url = $(this).data('url');
 
 			if (!note) {
 				Swal.fire('Peringatan', 'Catatan penolakan harus diisi', 'warning');
@@ -242,7 +269,7 @@ ob_start();
 			}
 
 			$.ajax({
-				url: '<?= base_url('leader/ranking/reject') ?>/' + currentRankingId,
+				url: url + currentRankingId,
 				method: 'POST',
 				data: { note: note },
 				dataType: 'json',
@@ -266,7 +293,45 @@ ob_start();
 				}
 			});
 		});
+
+	// Detail button - Load detail modal
+	$('.btn-detail').on('click', function(e) {
+		e.preventDefault();
+		const id = $(this).data('id');
+		const periode = '<?= htmlspecialchars($selected_periode ?? date('Y-m')) ?>';
+
+		// Show modal
+		$('#modalDetail').modal('show');
+
+		// Load content via AJAX
+		$('#detailContent').html(`
+			<div class="text-center py-5">
+				<div class="spinner-border text-primary" role="status">
+					<span class="sr-only">Loading...</span>
+				</div>
+			</div>
+		`);
+
+		$.ajax({
+			url: '<?= base_url('leader/ranking/detail') ?>',
+			method: 'GET',
+			data: {
+				id: id,
+				periode: periode
+			},
+			success: function(response) {
+				$('#detailContent').html(response);
+			},
+			error: function(xhr) {
+				$('#detailContent').html(`
+					<div class="alert alert-danger">
+						<i class="fe fe-alert-circle"></i> Gagal memuat data detail.
+					</div>
+				`);
+			}
+		});
 	});
+});
 </script>
 <?php
 add_js(ob_get_clean());

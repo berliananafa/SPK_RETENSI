@@ -223,6 +223,8 @@ $route['supervisor/customer-service/detail/(:num)'] = 'supervisor/CustomerServic
 // Monitoring & Ranking
 $route['supervisor/nilai'] = 'supervisor/NilaiController/index';
 $route['supervisor/ranking'] = 'supervisor/RankingController/index';
+$route['supervisor/ranking/detail'] = 'supervisor/RankingController/detail';
+$route['supervisor/ranking/bulkApprove'] = 'supervisor/RankingController/bulkApprove';
 $route['supervisor/ranking/approve/(:num)'] = 'supervisor/RankingController/approve/$1';
 $route['supervisor/ranking/reject/(:num)'] = 'supervisor/RankingController/reject/$1';
 
@@ -237,9 +239,20 @@ $route['supervisor/laporan/export-excel'] = 'supervisor/LaporanController/export
 $route['leader'] = 'leader/DashboardController';
 $route['leader/dashboard'] = 'leader/DashboardController/index';
 
-$route['leader/anggota'] = 'leader/AnggotaController/index';
+// Customer Service Management
 $route['leader/customer-service'] = 'leader/CustomerServiceController/index';
+$route['leader/customer-service/detail/(:num)'] = 'leader/CustomerServiceController/detail/$1';
 
+// Penilaian (Read-Only)
+$route['leader/nilai'] = 'leader/NilaiController/index';
+
+// Ranking Management
 $route['leader/ranking'] = 'leader/RankingController/index';
+$route['leader/ranking/detail'] = 'leader/RankingController/detail';
 $route['leader/ranking/approve/(:num)'] = 'leader/RankingController/approve/$1';
 $route['leader/ranking/reject/(:num)'] = 'leader/RankingController/reject/$1';
+
+// Laporan
+$route['leader/laporan'] = 'leader/LaporanController/index';
+$route['leader/laporan/export'] = 'leader/LaporanController/export_excel';
+$route['leader/laporan/export-excel'] = 'leader/LaporanController/export_excel';
