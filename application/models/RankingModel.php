@@ -26,21 +26,98 @@ class RankingModel extends MY_Model
 		parent::__construct();
 	}
 
+	/** ======================================================
+	 * PRIVATE HELPER METHODS
+	 * ====================================================== */
+
+	/**
+	 * Apply common JOINs for ranking with CS and approvers
+	 */
+	private function applyBasicRankingJoin($alias = 'ranking')
+	{
+		$this->db->join('customer_service', "{$alias}.id_cs = customer_service.id_cs", 'left')
+				 ->join('pengguna leader', "{$alias}.approved_by_leader = leader.id_user", 'left')
+				 ->join('pengguna supervisor', "{$alias}.approved_by_supervisor = supervisor.id_user", 'left');
+		return $this;
+	}
+
+	/**
+	 * Apply full details JOIN (CS, produk, kanal, tim, approvers)
+	 */
+	private function applyFullRankingJoin($alias = 'ranking')
+	{
+		$this->db->join('customer_service', "{$alias}.id_cs = customer_service.id_cs", 'left')
+				 ->join('produk', 'customer_service.id_produk = produk.id_produk', 'left')
+				 ->join('kanal', 'customer_service.id_kanal = kanal.id_kanal', 'left')
+				 ->join('tim', 'customer_service.id_tim = tim.id_tim', 'left')
+				 ->join('pengguna leader', "{$alias}.approved_by_leader = leader.id_user", 'left')
+				 ->join('pengguna supervisor', "{$alias}.approved_by_supervisor = supervisor.id_user", 'left');
+		return $this;
+	}
+
+	/**
+	 * Base SELECT for ranking with basic details
+	 */
+	private function getRankingBasicSelect($alias = 'ranking')
+	{
+		return "{$alias}.*,
+				customer_service.nama_cs,
+				customer_service.nik,
+				customer_service.id_tim,
+				leader.nama_pengguna as approved_by_leader_name,
+				supervisor.nama_pengguna as approved_by_supervisor_name";
+	}
+
+	/**
+	 * Base SELECT for ranking with full details
+	 */
+	private function getRankingFullSelect($alias = 'ranking')
+	{
+		return "{$alias}.*,
+				customer_service.nama_cs,
+				customer_service.nik,
+				produk.nama_produk,
+				kanal.nama_kanal,
+				tim.nama_tim,
+				leader.nama_pengguna as approved_by_leader_name,
+				supervisor.nama_pengguna as approved_by_supervisor_name";
+	}
+
+	/**
+	 * Apply common filters for ranking
+	 */
+	private function applyRankingFilters($filter = [])
+	{
+		if (!empty($filter['id_produk'])) {
+			$this->db->where('customer_service.id_produk', $filter['id_produk']);
+		}
+		if (!empty($filter['id_kanal'])) {
+			$this->db->where('customer_service.id_kanal', $filter['id_kanal']);
+		}
+		if (!empty($filter['id_tim'])) {
+			$this->db->where('customer_service.id_tim', $filter['id_tim']);
+		}
+		if (!empty($filter['status'])) {
+			$this->db->where('ranking.status', $filter['status']);
+		}
+		return $this;
+	}
+
+	/** ======================================================
+	 * BASIC QUERIES
+	 * ====================================================== */
+
 	/**
 	 * Get all rankings with related data
 	 */
 	public function getAllWithDetails()
 	{
-		return $this->db->select('ranking.*,
-			customer_service.nama_cs,
-			customer_service.nik,
-			leader.nama_pengguna as approved_by_leader_name,
-			supervisor.nama_pengguna as approved_by_supervisor_name')
-			->from($this->table)
-			->join('customer_service', 'ranking.id_cs = customer_service.id_cs', 'left')
-			->join('pengguna leader', 'ranking.approved_by_leader = leader.id_user', 'left')
-			->join('pengguna supervisor', 'ranking.approved_by_supervisor = supervisor.id_user', 'left')
-			->order_by('ranking.periode', 'DESC')
+		$this->db->select($this->getRankingBasicSelect())
+				 ->from($this->table);
+
+		$this->applyBasicRankingJoin();
+
+		return $this->db->order_by('ranking.periode', 'DESC')
 			->order_by('ranking.peringkat', 'ASC')
 			->get()
 			->result();
@@ -51,16 +128,12 @@ class RankingModel extends MY_Model
 	 */
 	public function getByIdWithDetails($id)
 	{
-		return $this->db->select('ranking.*,
-			customer_service.nama_cs,
-			customer_service.nik,
-			leader.nama_pengguna as approved_by_leader_name,
-			supervisor.nama_pengguna as approved_by_supervisor_name')
-			->from($this->table)
-			->join('customer_service', 'ranking.id_cs = customer_service.id_cs', 'left')
-			->join('pengguna leader', 'ranking.approved_by_leader = leader.id_user', 'left')
-			->join('pengguna supervisor', 'ranking.approved_by_supervisor = supervisor.id_user', 'left')
-			->where("ranking.{$this->primaryKey}", $id)
+		$this->db->select($this->getRankingBasicSelect())
+				 ->from($this->table);
+
+		$this->applyBasicRankingJoin();
+
+		return $this->db->where("ranking.{$this->primaryKey}", $id)
 			->get()
 			->row();
 	}
@@ -70,36 +143,14 @@ class RankingModel extends MY_Model
 	 */
 	public function getByPeriode($periode, $filter = [])
 	{
-		$this->db->select(
-			'ranking.*,
-            customer_service.nama_cs,
-            customer_service.nik,
-            produk.nama_produk,
-            kanal.nama_kanal,
-            tim.nama_tim,
-			leader.nama_pengguna as approved_by_leader_name,
-			supervisor.nama_pengguna as approved_by_supervisor_name'
-		)
-			->from($this->table)
-			->join('customer_service', 'ranking.id_cs = customer_service.id_cs', 'left')
-			->join('produk', 'customer_service.id_produk = produk.id_produk', 'left')
-			->join('kanal', 'customer_service.id_kanal = kanal.id_kanal', 'left')
-			->join('tim', 'customer_service.id_tim = tim.id_tim', 'left')
-			->join('pengguna leader', 'ranking.approved_by_leader = leader.id_user', 'left')
-			->join('pengguna supervisor', 'ranking.approved_by_supervisor = supervisor.id_user', 'left')
-			->where('ranking.periode', $periode);
+		$this->db->select($this->getRankingFullSelect())
+				 ->from($this->table);
 
-		if (!empty($filter['id_produk'])) {
-			$this->db->where('customer_service.id_produk', $filter['id_produk']);
-		}
+		$this->applyFullRankingJoin();
 
-		if (!empty($filter['id_kanal'])) {
-			$this->db->where('customer_service.id_kanal', $filter['id_kanal']);
-		}
+		$this->db->where('ranking.periode', $periode);
 
-		if (!empty($filter['id_tim'])) {
-			$this->db->where('customer_service.id_tim', $filter['id_tim']);
-		}
+		$this->applyRankingFilters($filter);
 
 		return $this->db->order_by('ranking.peringkat', 'ASC')->get()->result();
 	}
@@ -176,26 +227,18 @@ class RankingModel extends MY_Model
 	 */
 	public function getTopRankings($periode, $limit = 10, $filter = [])
 	{
-		$this->db->select(
-			'ranking.*,
-            customer_service.nama_cs,
-            customer_service.nik,
-            tim.nama_tim,
-            produk.nama_produk'
-		)
-			->from($this->table)
-			->join('customer_service', 'ranking.id_cs = customer_service.id_cs', 'left')
-			->join('tim', 'customer_service.id_tim = tim.id_tim', 'left')
-			->join('produk', 'customer_service.id_produk = produk.id_produk', 'left')
-			->where('ranking.periode', $periode);
+		$this->db->select('ranking.*,
+						  customer_service.nama_cs,
+						  customer_service.nik,
+						  tim.nama_tim,
+						  produk.nama_produk')
+				 ->from($this->table)
+				 ->join('customer_service', 'ranking.id_cs = customer_service.id_cs', 'left')
+				 ->join('tim', 'customer_service.id_tim = tim.id_tim', 'left')
+				 ->join('produk', 'customer_service.id_produk = produk.id_produk', 'left')
+				 ->where('ranking.periode', $periode);
 
-		if (!empty($filter['id_produk'])) {
-			$this->db->where('customer_service.id_produk', $filter['id_produk']);
-		}
-
-		if (!empty($filter['status'])) {
-			$this->db->where('ranking.status', $filter['status']);
-		}
+		$this->applyRankingFilters($filter);
 
 		return $this->db->order_by('ranking.peringkat', 'ASC')
 			->limit($limit)
@@ -242,6 +285,7 @@ class RankingModel extends MY_Model
 
 	/**
 	 * Get rankings by periode for supervisor
+	 * Shows: pending_supervisor, published
 	 */
 	public function getByPeriodeBySupervisor($periode, $supervisorId, $filter = [])
 	{
@@ -253,7 +297,7 @@ class RankingModel extends MY_Model
 			->join('kanal k', 'cs.id_kanal = k.id_kanal')
 			->where('t.id_supervisor', $supervisorId)
 			->where('r.periode', $periode)
-			->where('r.status', 'published');
+			->where_in('r.status', ['pending_supervisor', 'published']);
 
 		if (!empty($filter['id_produk'])) {
 			$this->db->where('cs.id_produk', $filter['id_produk']);
@@ -274,6 +318,7 @@ class RankingModel extends MY_Model
 
 	/**
 	 * Get latest periode for supervisor
+	 * Shows all ranking stages
 	 */
 	public function getLatestPeriodeBySupervisor($supervisorId)
 	{
@@ -282,7 +327,7 @@ class RankingModel extends MY_Model
 			->join('customer_service cs', 'r.id_cs = cs.id_cs')
 			->join('tim t', 'cs.id_tim = t.id_tim')
 			->where('t.id_supervisor', $supervisorId)
-			->where('r.status', 'published')
+			->where_in('r.status', ['pending_supervisor', 'published'])
 			->order_by('r.periode', 'DESC')
 			->limit(1)
 			->get()
@@ -291,6 +336,7 @@ class RankingModel extends MY_Model
 
 	/**
 	 * Get distinct periods by supervisor
+	 * Shows all ranking stages
 	 */
 	public function getPeriodsBySupervisor($supervisorId)
 	{
@@ -300,7 +346,7 @@ class RankingModel extends MY_Model
 			->join('tim t', 'cs.id_tim = t.id_tim')
 			->distinct()
 			->where('t.id_supervisor', $supervisorId)
-			->where('r.status', 'published')
+			->where_in('r.status', ['pending_supervisor', 'published'])
 			->order_by('r.periode', 'DESC')
 			->get()
 			->result();
@@ -347,6 +393,7 @@ class RankingModel extends MY_Model
 
 	/**
 	 * Get rankings by periode for specific team (Leader scope)
+	 * Shows: pending_leader, pending_supervisor, published
 	 */
 	public function getByPeriodeAndTeam($periode, $teamId)
 	{
@@ -357,7 +404,6 @@ class RankingModel extends MY_Model
 			->join('kanal k', 'cs.id_kanal = k.id_kanal')
 			->where('cs.id_tim', $teamId)
 			->where('r.periode', $periode)
-			->where('r.status', 'published')
 			->order_by('r.peringkat', 'ASC');
 
 		return $this->db->get()->result();
@@ -365,6 +411,7 @@ class RankingModel extends MY_Model
 
 	/**
 	 * Get latest periode for specific team
+	 * Shows all status (leader can see all ranking stages)
 	 */
 	public function getLatestPeriodeByTeam($teamId)
 	{
@@ -372,7 +419,7 @@ class RankingModel extends MY_Model
 			->from("{$this->table} r")
 			->join('customer_service cs', 'r.id_cs = cs.id_cs')
 			->where('cs.id_tim', $teamId)
-			->where('r.status', 'published')
+			->where_in('r.status', ['pending_leader', 'pending_supervisor', 'published'])
 			->order_by('r.periode', 'DESC')
 			->limit(1)
 			->get()
@@ -381,6 +428,7 @@ class RankingModel extends MY_Model
 
 	/**
 	 * Get distinct periods for specific team
+	 * Shows all ranking stages
 	 */
 	public function getPeriodsByTeam($teamId)
 	{
@@ -389,10 +437,30 @@ class RankingModel extends MY_Model
 			->join('customer_service cs', 'r.id_cs = cs.id_cs')
 			->distinct()
 			->where('cs.id_tim', $teamId)
-			->where('r.status', 'published')
+			->where_in('r.status', ['pending_leader', 'pending_supervisor', 'published'])
 			->order_by('r.periode', 'DESC')
 			->get()
 			->result();
+	}
+
+	/**
+	 * Get top CS for specific team and periode
+	 * Used by Leader dashboard
+	 */
+	public function getTopCsByTeam($teamId, $periode, $limit = 5)
+	{
+		$this->db->select('r.*, cs.nama_cs, cs.nik, p.nama_produk, k.nama_kanal')
+			->from("{$this->table} r")
+			->join('customer_service cs', 'r.id_cs = cs.id_cs')
+			->join('produk p', 'cs.id_produk = p.id_produk', 'left')
+			->join('kanal k', 'cs.id_kanal = k.id_kanal', 'left')
+			->where('cs.id_tim', $teamId)
+			->where('r.periode', $periode)
+			->where('r.status', 'published')
+			->order_by('r.peringkat', 'ASC')
+			->limit($limit);
+
+		return $this->db->get()->result();
 	}
 
 	/**

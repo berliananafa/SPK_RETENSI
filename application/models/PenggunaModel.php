@@ -186,6 +186,41 @@ class PenggunaModel extends MY_Model
     }
 
     /** ======================================================
+     * PRIVATE HELPER METHODS
+     * ====================================================== */
+
+    /**
+     * Apply JOIN for user statistics (tim dan customer_service)
+     */
+    private function applyStatsJoin()
+    {
+        $this->db->join('tim t', 'p.id_user = t.id_supervisor', 'left')
+                 ->join('customer_service cs', 't.id_tim = cs.id_tim', 'left');
+        return $this;
+    }
+
+    /**
+     * Apply JOIN for leader statistics
+     */
+    private function applyLeaderStatsJoin()
+    {
+        $this->db->join('tim t', 'p.id_user = t.id_leader', 'left')
+                 ->join('customer_service cs', 't.id_tim = cs.id_tim', 'left');
+        return $this;
+    }
+
+    /**
+     * Get user with stats query base
+     */
+    private function getUsersWithStatsBase()
+    {
+        return $this->db->select('p.*,
+                      COUNT(DISTINCT t.id_tim) AS total_tim,
+                      COUNT(DISTINCT cs.id_cs) AS total_cs')
+                        ->from("{$this->table} p");
+    }
+
+    /** ======================================================
      * SUPERVISOR QUERIES
      * ====================================================== */
 
@@ -196,14 +231,10 @@ class PenggunaModel extends MY_Model
      */
     public function getSupervisorsWithStats($managerId)
     {
-        return $this->db
-            ->select('p.*, 
-                      COUNT(DISTINCT t.id_tim) AS total_tim, 
-                      COUNT(DISTINCT cs.id_cs) AS total_cs')
-            ->from("{$this->table} p")
-            ->join('tim t', 'p.id_user = t.id_supervisor', 'left')
-            ->join('customer_service cs', 't.id_tim = cs.id_tim', 'left')
-            ->where('p.id_atasan', $managerId)
+        $this->getUsersWithStatsBase();
+        $this->applyStatsJoin();
+
+        return $this->db->where('p.id_atasan', $managerId)
             ->where('p.level', self::LEVEL_SUPERVISOR)
             ->group_by('p.id_user')
             ->get()
@@ -280,14 +311,10 @@ class PenggunaModel extends MY_Model
      */
     public function getLeadersWithStats($supervisorId)
     {
-        return $this->db
-            ->select('p.*,
-                      COUNT(DISTINCT t.id_tim) AS total_tim,
-                      COUNT(DISTINCT cs.id_cs) AS total_cs')
-            ->from("{$this->table} p")
-            ->join('tim t', 'p.id_user = t.id_leader', 'left')
-            ->join('customer_service cs', 't.id_tim = cs.id_tim', 'left')
-            ->where('t.id_supervisor', $supervisorId)
+        $this->getUsersWithStatsBase();
+        $this->applyLeaderStatsJoin();
+
+        return $this->db->where('t.id_supervisor', $supervisorId)
             ->where('p.level', self::LEVEL_LEADER)
             ->group_by('p.id_user')
             ->get()
