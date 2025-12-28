@@ -18,6 +18,70 @@ class NilaiModel extends MY_Model
 		parent::__construct();
 	}
 
+	/** ======================================================
+	 * PRIVATE HELPER METHODS
+	 * ====================================================== */
+
+	/**
+	 * Apply common JOINs for nilai with full details
+	 */
+	private function applyFullDetailsJoin($alias = 'nilai')
+	{
+		$this->db->join('customer_service', "{$alias}.id_cs = customer_service.id_cs", 'left')
+				 ->join('produk', 'customer_service.id_produk = produk.id_produk', 'left')
+				 ->join('sub_kriteria', "{$alias}.id_sub_kriteria = sub_kriteria.id_sub_kriteria", 'left')
+				 ->join('kriteria', 'sub_kriteria.id_kriteria = kriteria.id_kriteria', 'left');
+		return $this;
+	}
+
+	/**
+	 * Apply common SELECT for nilai with details
+	 */
+	private function getNilaiDetailsSelect($alias = 'nilai')
+	{
+		return "{$alias}.*,
+				customer_service.id_tim,
+				customer_service.nama_cs,
+				customer_service.nik,
+				produk.nama_produk,
+				kriteria.id_kriteria,
+				kriteria.nama_kriteria,
+				kriteria.kode_kriteria,
+				kriteria.bobot as bobot_kriteria,
+				kriteria.jenis_kriteria,
+				sub_kriteria.id_sub_kriteria,
+				sub_kriteria.nama_sub_kriteria,
+				sub_kriteria.bobot_sub,
+				sub_kriteria.target";
+	}
+
+	/**
+	 * Apply common filters for nilai queries
+	 */
+	private function applyCommonFilters($filter = [])
+	{
+		if (!empty($filter['periode'])) {
+			$this->db->where('nilai.periode', $filter['periode']);
+		}
+		if (!empty($filter['id_kriteria'])) {
+			$this->db->where('kriteria.id_kriteria', $filter['id_kriteria']);
+		}
+		if (!empty($filter['id_tim'])) {
+			$this->db->where('customer_service.id_tim', $filter['id_tim']);
+		}
+		if (!empty($filter['id_produk'])) {
+			$this->db->where('customer_service.id_produk', $filter['id_produk']);
+		}
+		if (!empty($filter['id_cs'])) {
+			$this->db->where('nilai.id_cs', $filter['id_cs']);
+		}
+		return $this;
+	}
+
+	/** ======================================================
+	 * BASIC QUERIES
+	 * ====================================================== */
+
 	/**
 	 * Get all nilai with related data
 	 *
@@ -26,45 +90,14 @@ class NilaiModel extends MY_Model
 	 */
 	public function getAllWithDetails($filter = [])
 	{
-		$this->db->select(
-			'nilai.*,
-            customer_service.id_tim,
-            customer_service.nama_cs,
-            customer_service.nik,
-			produk.nama_produk,
-            kriteria.id_kriteria,
-            kriteria.nama_kriteria,
-            kriteria.kode_kriteria,
-            kriteria.bobot as bobot_kriteria,
-            kriteria.jenis_kriteria,
-            sub_kriteria.id_sub_kriteria,
-            sub_kriteria.nama_sub_kriteria,
-            sub_kriteria.bobot_sub,
-            sub_kriteria.target'
-		)
-			->from($this->table)
-			->join('customer_service', 'nilai.id_cs = customer_service.id_cs', 'left')
-			->join('produk', 'customer_service.id_produk = produk.id_produk', 'left')
-			->join('sub_kriteria', 'nilai.id_sub_kriteria = sub_kriteria.id_sub_kriteria', 'left')
-			->join('kriteria', 'sub_kriteria.id_kriteria = kriteria.id_kriteria', 'left')
-			->where('kriteria.status_approval', 'approved');
+		$this->db->select($this->getNilaiDetailsSelect())
+				 ->from($this->table);
 
-		// Apply filters when provided
-		if (!empty($filter['periode'])) {
-			$this->db->where('nilai.periode', $filter['periode']);
-		}
+		$this->applyFullDetailsJoin();
 
-		if (!empty($filter['id_kriteria'])) {
-			$this->db->where('kriteria.id_kriteria', $filter['id_kriteria']);
-		}
+		$this->db->where('kriteria.status_approval', 'approved');
 
-		if (!empty($filter['id_tim'])) {
-			$this->db->where('customer_service.id_tim', $filter['id_tim']);
-		}
-
-		if (!empty($filter['id_produk'])) {
-			$this->db->where('customer_service.id_produk', $filter['id_produk']);
-		}
+		$this->applyCommonFilters($filter);
 
 		return $this->db->order_by('nilai.created_at', 'DESC')
 			->get()
@@ -370,6 +403,21 @@ class NilaiModel extends MY_Model
 	}
 
 	/**
+	 * Get distinct periodes by team (for Leader)
+	 */
+	public function getDistinctPeriodesByTeam($teamId)
+	{
+		return $this->db->select('n.periode')
+			->from("{$this->table} n")
+			->join('customer_service cs', 'n.id_cs = cs.id_cs')
+			->distinct()
+			->where('cs.id_tim', $teamId)
+			->order_by('n.periode', 'DESC')
+			->get()
+			->result();
+	}
+
+	/**
 	 * Get nilai with details by supervisor (read-only for validation)
 	 */
 	public function getNilaiWithDetailsBySupervisor($supervisorId, $filter = [])
@@ -406,7 +454,7 @@ class NilaiModel extends MY_Model
 			$this->db->where('cs.id_tim', $filter['id_tim']);
 		}
 		if (!empty($filter['id_cs'])) {
-			$this->db->where('cs.id_cs', $filter['id_cs']);
+			$this->db->where('nilai.id_cs', $filter['id_cs']);
 		}
 		if (!empty($filter['id_kriteria'])) {
 			$this->db->where('k.id_kriteria', $filter['id_kriteria']);
@@ -474,7 +522,7 @@ class NilaiModel extends MY_Model
 			$this->db->where('cs.id_tim', $filter['id_tim']);
 		}
 		if (!empty($filter['id_cs'])) {
-			$this->db->where('cs.id_cs', $filter['id_cs']);
+			$this->db->where('nilai.id_cs', $filter['id_cs']);
 		}
 		if (!empty($filter['id_kriteria'])) {
 			$this->db->where('k.id_kriteria', $filter['id_kriteria']);
@@ -483,6 +531,25 @@ class NilaiModel extends MY_Model
 		return $this->db->order_by('n.periode', 'DESC')
 			->order_by('cs.nama_cs', 'ASC')
 			->order_by('k.kode_kriteria', 'ASC')
+			->get()
+			->result();
+	}
+
+	/**
+	 * Get recent nilai for team (for Leader dashboard)
+	 */
+	public function getRecentNilaiByTeam($teamId, $limit = 5)
+	{
+		return $this->db->select('n.id_nilai, n.nilai, n.periode, n.created_at,
+		                         cs.nik, cs.nama_cs,
+		                         sk.nama_sub_kriteria, k.nama_kriteria')
+			->from('nilai n')
+			->join('customer_service cs', 'n.id_cs = cs.id_cs')
+			->join('sub_kriteria sk', 'n.id_sub_kriteria = sk.id_sub_kriteria')
+			->join('kriteria k', 'sk.id_kriteria = k.id_kriteria')
+			->where('cs.id_tim', $teamId)
+			->order_by('n.created_at', 'DESC')
+			->limit($limit)
 			->get()
 			->result();
 	}
