@@ -6,6 +6,24 @@
 					<div class="col">
 						<h5 class="mb-0"><i class="fe fe-award"></i> Hasil Ranking Customer Service</h5>
 					</div>
+					<div class="col-auto">
+						<?php
+						// Hitung jumlah ranking pending
+						$pendingCount = 0;
+						if (!empty($rankings)) {
+							foreach ($rankings as $r) {
+								if ($r->status === 'pending_supervisor') {
+									$pendingCount++;
+								}
+							}
+						}
+						?>
+						<?php if ($pendingCount > 0 && !empty($selected_periode)): ?>
+							<button class="btn btn-success btn-sm" id="btnBulkApprove">
+								<i class="fe fe-check-circle"></i> Setujui Semua (<?= $pendingCount ?>)
+							</button>
+						<?php endif; ?>
+					</div>
 				</div>
 			</div>
 			<div class="card-body">
@@ -125,17 +143,23 @@
 											<?php endif; ?>
 										</td>
 										<td class="text-center">
+											<button class="btn btn-sm btn-info btn-detail"
+												data-id="<?= $rank->id_cs ?? $rank->id ?>"
+												data-periode="<?= htmlspecialchars($selected_periode ?? date('Y-m')) ?>"
+												title="Lihat Detail">
+												<i class="fe fe-eye"></i>
+											</button>
 											<?php if ($rank->status === 'pending_supervisor'): ?>
 												<button class="btn btn-sm btn-success btn-approve" data-id="<?= $rank->id_ranking ?? $rank->id ?>">
-													<i class="fe fe-check"></i> Setujui
+													<i class="fe fe-check"></i>
 												</button>
 												<button class="btn btn-sm btn-danger btn-reject" data-id="<?= $rank->id_ranking ?? $rank->id ?>">
-													<i class="fe fe-x"></i> Tolak
+													<i class="fe fe-x"></i>
 												</button>
 											<?php elseif (!empty($rank->approved_by_supervisor)): ?>
-												<span class="text-success"><i class="fe fe-check-circle"></i> Approved</span>
+												<span class="badge badge-success"><i class="fe fe-check-circle"></i> Approved</span>
 											<?php else: ?>
-												<span class="text-muted">-</span>
+												<!-- <span class="text-muted">-</span> -->
 											<?php endif; ?>
 										</td>
 									</tr>
@@ -153,25 +177,60 @@
 	</div>
 </div>
 
+<!-- Modal Detail Ranking -->
+<div class="modal fade" id="modalDetailRanking" tabindex="-1" role="dialog" aria-hidden="true"
+	data-detail-url="<?= base_url('supervisor/ranking/detail') ?>"
+	data-approve-url="<?= base_url('supervisor/ranking/approve') ?>"
+	data-reject-url="<?= base_url('supervisor/ranking/reject') ?>"
+	data-bulk-approve-url="<?= base_url('supervisor/ranking/bulkApprove') ?>"
+	data-filter-url="<?= base_url('supervisor/ranking') ?>">
+	<div class="modal-dialog modal-xl" role="document">
+		<div class="modal-content">
+			<div class="modal-header bg-primary text-white">
+				<h5 class="modal-title">
+					<i class="fe fe-bar-chart-2"></i> Detail Perhitungan Ranking
+				</h5>
+				<button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+					<span aria-hidden="true">&times;</span>
+				</button>
+			</div>
+			<div class="modal-body" id="modalDetailContent">
+				<div class="text-center py-5">
+					<div class="spinner-border text-primary" role="status">
+						<span class="sr-only">Loading...</span>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+
 <?php
 ob_start();
 ?>
 <script>
 	$(document).ready(function() {
+		const modal = $('#modalDetailRanking');
+		const urls = {
+			detail: modal.data('detail-url'),
+			approve: modal.data('approve-url'),
+			reject: modal.data('reject-url'),
+			bulkApprove: modal.data('bulk-approve-url'),
+			filter: modal.data('filter-url')
+		};
+
 		// Filter button click handler
 		$('#btnFilter').on('click', function() {
 			var periode = $('#filterPeriode').val();
 			var tim = $('#filterTim').val();
 			var produk = $('#filterProduk').val();
 
-			var url = '<?= base_url('supervisor/ranking') ?>?';
 			var params = [];
-
 			if (periode) params.push('periode=' + periode);
 			if (tim) params.push('id_tim=' + tim);
 			if (produk) params.push('id_produk=' + produk);
 
-			window.location.href = url + params.join('&');
+			window.location.href = urls.filter + '?' + params.join('&');
 		});
 
 		// Clear filter button click handler
@@ -180,10 +239,96 @@ ob_start();
 			$('#filterTim').val('');
 			$('#filterProduk').val('');
 
-			window.location.href = '<?= base_url('supervisor/ranking') ?>';
+			window.location.href = urls.filter;
 		});
 
 		let currentRankingId = null;
+
+		// Detail button - Load detail modal
+		$('.btn-detail').on('click', function(e) {
+			e.preventDefault();
+			const csId = $(this).data('id');
+			const periode = $(this).data('periode');
+
+			// Show modal
+			modal.modal('show');
+
+			// Load content via AJAX
+			$('#modalDetailContent').html(`
+				<div class="text-center py-5">
+					<div class="spinner-border text-primary" role="status">
+						<span class="sr-only">Loading...</span>
+					</div>
+				</div>
+			`);
+
+			$.ajax({
+				url: urls.detail,
+				method: 'GET',
+				data: {
+					id: csId,
+					periode: periode
+				},
+				success: function(response) {
+					$('#modalDetailContent').html(response);
+				},
+				error: function(xhr) {
+					$('#modalDetailContent').html(`
+						<div class="alert alert-danger">
+							<i class="fe fe-alert-circle"></i> Gagal memuat data detail.
+						</div>
+					`);
+				}
+			});
+		});
+
+		// Bulk Approve button
+		$('#btnBulkApprove').on('click', function(e) {
+			e.preventDefault();
+			const periode = '<?= $selected_periode ?? '' ?>';
+			const pendingCount = <?= $pendingCount ?? 0 ?>;
+
+			if (!periode) {
+				Swal.fire('Error', 'Periode tidak ditemukan', 'error');
+				return;
+			}
+
+			Swal.fire({
+				title: 'Konfirmasi Bulk Approval',
+				html: `Apakah Anda yakin ingin menyetujui <strong>${pendingCount} ranking sekaligus</strong> dan mempublikasikannya?`,
+				icon: 'question',
+				showCancelButton: true,
+				confirmButtonColor: '#28a745',
+				cancelButtonColor: '#6c757d',
+				confirmButtonText: 'Ya, Setujui Semua',
+				cancelButtonText: 'Batal'
+			}).then((result) => {
+				if (result.isConfirmed) {
+					$.ajax({
+						url: urls.bulkApprove,
+						method: 'POST',
+						data: { periode: periode },
+						dataType: 'json',
+						headers: {
+							'X-Requested-With': 'XMLHttpRequest'
+						},
+						success: function(response) {
+							if (response.status === 'success') {
+								Swal.fire('Berhasil!', response.message, 'success').then(() => {
+									location.reload();
+								});
+							} else {
+								Swal.fire('Error', response.message, 'error');
+							}
+						},
+						error: function(xhr) {
+							const response = xhr.responseJSON || {};
+							Swal.fire('Error', response.message || 'Terjadi kesalahan', 'error');
+						}
+					});
+				}
+			});
+		});
 
 		// Approve button
 		$('.btn-approve').on('click', function(e) {
@@ -202,7 +347,7 @@ ob_start();
 			}).then((result) => {
 				if (result.isConfirmed) {
 					$.ajax({
-						url: '<?= base_url('supervisor/ranking/approve') ?>/' + id,
+						url: urls.approve + '/' + id,
 						method: 'POST',
 						dataType: 'json',
 						headers: {
@@ -252,7 +397,7 @@ ob_start();
 			}).then((result) => {
 				if (result.isConfirmed) {
 					$.ajax({
-						url: '<?= base_url('supervisor/ranking/reject') ?>/' + currentRankingId,
+						url: urls.reject + '/' + currentRankingId,
 						method: 'POST',
 						data: { note: result.value },
 						dataType: 'json',

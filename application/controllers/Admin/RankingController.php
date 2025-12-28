@@ -201,7 +201,7 @@ class RankingController extends Admin_Controller
 				'nilai_akhir' => $r->skor_akhir,
 				'peringkat'   => $r->peringkat,
 				'periode'     => $periode,
-				'status'      => 'published',
+				'status'      => 'pending_leader',
 				'created_at'  => $now,
 				'updated_at'  => $now,
 			];
