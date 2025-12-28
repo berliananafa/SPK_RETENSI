@@ -1,7 +1,7 @@
-# SPK Retensi Customer Service — Untuk Skripsi
+# SPK Retensi Customer Service
 
 Deskripsi singkat
-Sistem Pendukung Keputusan (SPK) untuk membantu penentuan retensi Customer Service menggunakan metode Profile Matching. Dirancang untuk keperluan penelitian/skripsi dengan alur approval bertingkat (Leader → Supervisor → Published).
+Sistem Pendukung Keputusan (SPK) untuk membantu penentuan retensi Customer Service menggunakan metode Profile Matching. Dirancang untuk keperluan penelitian dengan alur approval bertingkat (Leader → Supervisor → Published).
 
 Tujuan
 - Menyediakan mekanisme perhitungan ranking CS berdasarkan kriteria dan sub-kriteria.
