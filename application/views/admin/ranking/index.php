@@ -199,7 +199,14 @@
 										</td>
 										<?php if (!empty($is_saved)): ?>
 										<td class="text-center">
-											<?php if (!empty($rank->approved_by_leader)): ?>
+											<?php
+											$rankStatus = $rank->status ?? 'draft';
+											if ($rankStatus === 'rejected_leader'): ?>
+												<span class="badge badge-danger" title="Ditolak oleh <?= htmlspecialchars($rank->approved_by_leader_name ?? '') ?>">
+													<i class="fe fe-x"></i> Ditolak
+												</span>
+												<br><small class="text-muted"><?= !empty($rank->approved_at_leader) ? date('d/m/Y', strtotime($rank->approved_at_leader)) : '' ?></small>
+											<?php elseif (in_array($rankStatus, ['pending_supervisor', 'rejected_supervisor', 'published'])): ?>
 												<span class="badge badge-success" title="Disetujui oleh <?= htmlspecialchars($rank->approved_by_leader_name ?? '') ?>">
 													<i class="fe fe-check"></i> Approved
 												</span>
@@ -211,7 +218,13 @@
 											<?php endif; ?>
 										</td>
 										<td class="text-center">
-											<?php if (!empty($rank->approved_by_supervisor)): ?>
+											<?php
+											if ($rankStatus === 'rejected_supervisor'): ?>
+												<span class="badge badge-danger" title="Ditolak oleh <?= htmlspecialchars($rank->approved_by_supervisor_name ?? '') ?>">
+													<i class="fe fe-x"></i> Ditolak
+												</span>
+												<br><small class="text-muted"><?= !empty($rank->approved_at_supervisor) ? date('d/m/Y', strtotime($rank->approved_at_supervisor)) : '' ?></small>
+											<?php elseif ($rankStatus === 'published'): ?>
 												<span class="badge badge-success" title="Disetujui oleh <?= htmlspecialchars($rank->approved_by_supervisor_name ?? '') ?>">
 													<i class="fe fe-check"></i> Approved
 												</span>

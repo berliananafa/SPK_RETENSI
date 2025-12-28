@@ -136,17 +136,46 @@
 
 	<!-- Approval Info -->
 	<?php if (!empty($ranking_info)): ?>
+	<?php
+		// Determine leader approval status
+		$leaderStatus = 'pending';
+		$leaderBorder = 'warning';
+		$leaderIcon = 'warning';
+		if ($ranking_info->status === 'rejected_leader') {
+			$leaderStatus = 'rejected';
+			$leaderBorder = 'danger';
+			$leaderIcon = 'danger';
+		} elseif (in_array($ranking_info->status, ['pending_supervisor', 'rejected_supervisor', 'published'])) {
+			$leaderStatus = 'approved';
+			$leaderBorder = 'success';
+			$leaderIcon = 'success';
+		}
+
+		// Determine supervisor approval status
+		$supervisorStatus = 'pending';
+		$supervisorBorder = 'warning';
+		$supervisorIcon = 'warning';
+		if ($ranking_info->status === 'rejected_supervisor') {
+			$supervisorStatus = 'rejected';
+			$supervisorBorder = 'danger';
+			$supervisorIcon = 'danger';
+		} elseif ($ranking_info->status === 'published') {
+			$supervisorStatus = 'approved';
+			$supervisorBorder = 'success';
+			$supervisorIcon = 'success';
+		}
+	?>
 	<div class="row mt-3 g-2">
 		<div class="col-md-6">
-			<div class="card border-<?= !empty($ranking_info->approved_by_leader) ? 'success' : 'warning' ?> shadow-sm">
+			<div class="card border-<?= $leaderBorder ?> shadow-sm">
 				<div class="card-body p-3">
 					<div class="d-flex align-items-center">
 						<div class="me-3">
-							<i class="fas fa-user-check fa-2x text-<?= !empty($ranking_info->approved_by_leader) ? 'success' : 'warning' ?>"></i>
+							<i class="fas fa-user-check fa-2x text-<?= $leaderIcon ?>"></i>
 						</div>
 						<div class="flex-grow-1">
 							<div class="small text-muted mb-1">Approval Leader</div>
-							<?php if (!empty($ranking_info->approved_by_leader)): ?>
+							<?php if ($leaderStatus === 'approved'): ?>
 								<div class="fw-bold text-success">
 									<i class="fe fe-check-circle"></i> Approved
 								</div>
@@ -157,6 +186,19 @@
 								<?php if (!empty($ranking_info->leader_note)): ?>
 									<div class="small mt-2 p-2 bg-light rounded">
 										<i class="fe fe-message-square"></i> <?= htmlspecialchars($ranking_info->leader_note) ?>
+									</div>
+								<?php endif; ?>
+							<?php elseif ($leaderStatus === 'rejected'): ?>
+								<div class="fw-bold text-danger">
+									<i class="fe fe-x-circle"></i> Ditolak
+								</div>
+								<div class="small text-muted">
+									Oleh: <?= htmlspecialchars($ranking_info->approved_by_leader_name ?? '-') ?>
+									<br>Tanggal: <?= !empty($ranking_info->approved_at_leader) ? date('d/m/Y H:i', strtotime($ranking_info->approved_at_leader)) : '-' ?>
+								</div>
+								<?php if (!empty($ranking_info->leader_note)): ?>
+									<div class="small mt-2 p-2 rounded border border-danger">
+										<i class="fe fe-message-square"></i> <strong>Alasan:</strong> <?= htmlspecialchars($ranking_info->leader_note) ?>
 									</div>
 								<?php endif; ?>
 							<?php else: ?>
@@ -170,15 +212,15 @@
 			</div>
 		</div>
 		<div class="col-md-6">
-			<div class="card border-<?= !empty($ranking_info->approved_by_supervisor) ? 'success' : 'warning' ?> shadow-sm">
+			<div class="card border-<?= $supervisorBorder ?> shadow-sm">
 				<div class="card-body p-3">
 					<div class="d-flex align-items-center">
 						<div class="me-3">
-							<i class="fas fa-user-shield fa-2x text-<?= !empty($ranking_info->approved_by_supervisor) ? 'success' : 'warning' ?>"></i>
+							<i class="fas fa-user-shield fa-2x text-<?= $supervisorIcon ?>"></i>
 						</div>
 						<div class="flex-grow-1">
 							<div class="small text-muted mb-1">Approval Supervisor</div>
-							<?php if (!empty($ranking_info->approved_by_supervisor)): ?>
+							<?php if ($supervisorStatus === 'approved'): ?>
 								<div class="fw-bold text-success">
 									<i class="fe fe-check-circle"></i> Approved
 								</div>
@@ -189,6 +231,19 @@
 								<?php if (!empty($ranking_info->supervisor_note)): ?>
 									<div class="small mt-2 p-2 bg-light rounded">
 										<i class="fe fe-message-square"></i> <?= htmlspecialchars($ranking_info->supervisor_note) ?>
+									</div>
+								<?php endif; ?>
+							<?php elseif ($supervisorStatus === 'rejected'): ?>
+								<div class="fw-bold text-danger">
+									<i class="fe fe-x-circle"></i> Ditolak
+								</div>
+								<div class="small text-muted">
+									Oleh: <?= htmlspecialchars($ranking_info->approved_by_supervisor_name ?? '-') ?>
+									<br>Tanggal: <?= !empty($ranking_info->approved_at_supervisor) ? date('d/m/Y H:i', strtotime($ranking_info->approved_at_supervisor)) : '-' ?>
+								</div>
+								<?php if (!empty($ranking_info->supervisor_note)): ?>
+									<div class="small mt-2 p-2 bg-danger-light rounded border border-danger">
+										<i class="fe fe-message-square"></i> <strong>Alasan:</strong> <?= htmlspecialchars($ranking_info->supervisor_note) ?>
 									</div>
 								<?php endif; ?>
 							<?php else: ?>
