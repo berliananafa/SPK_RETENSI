@@ -360,27 +360,32 @@ if ($user_level === 'admin') {
 
 		<p class="mt-4 mb-1 text-muted nav-heading"><span>Tim Saya</span></p>
 		<ul class="navbar-nav flex-fill w-100">
-			<li class="nav-item w-100 <?= (strpos($current_url, 'leader/anggota') !== false) ? 'active' : '' ?>">
-				<a class="nav-link" href="<?= base_url('leader/anggota') ?>">
-					<i class="fe fe-users"></i>
-					<span class="ml-3 item-text">Customer Service</span>
-				</a>
-			</li>
-			<li
-				class="nav-item w-100 <?= (strpos($current_url, 'leader/customer-service') !== false) ? 'active' : '' ?>">
+			<li class="nav-item w-100 <?= (strpos($current_url, 'leader/customer-service') !== false) ? 'active' : '' ?>">
 				<a class="nav-link" href="<?= base_url('leader/customer-service') ?>">
-					<i class="fe fe-user-check"></i>
+					<i class="fe fe-users"></i>
 					<span class="ml-3 item-text">Customer Service</span>
 				</a>
 			</li>
 		</ul>
 
-		<p class="mt-4 mb-1 text-muted nav-heading"><span>Performance</span></p>
+		<p class="mt-4 mb-1 text-muted nav-heading"><span>Monitoring & Laporan</span></p>
 		<ul class="navbar-nav flex-fill w-100">
+			<li class="nav-item w-100 <?= (strpos($current_url, 'leader/nilai') !== false) ? 'active' : '' ?>">
+				<a class="nav-link" href="<?= base_url('leader/nilai') ?>">
+					<i class="fe fe-eye"></i>
+					<span class="ml-3 item-text">Monitor Penilaian</span>
+				</a>
+			</li>
 			<li class="nav-item w-100 <?= (strpos($current_url, 'leader/ranking') !== false) ? 'active' : '' ?>">
 				<a class="nav-link" href="<?= base_url('leader/ranking') ?>">
 					<i class="fe fe-award"></i>
 					<span class="ml-3 item-text">Ranking Tim</span>
+				</a>
+			</li>
+			<li class="nav-item w-100 <?= (strpos($current_url, 'leader/laporan') !== false) ? 'active' : '' ?>">
+				<a class="nav-link" href="<?= base_url('leader/laporan') ?>">
+					<i class="fe fe-file-text"></i>
+					<span class="ml-3 item-text">Laporan Performa</span>
 				</a>
 			</li>
 		</ul>
