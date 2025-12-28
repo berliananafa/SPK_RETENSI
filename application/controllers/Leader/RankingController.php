@@ -37,7 +37,7 @@ class RankingController extends Leader_Controller
 
         // Get latest periode
         $latestPeriode = $this->RankingModel->getLatestPeriodeByTeam($team->id_tim);
-        $selectedPeriode = $this->input->get('periode') ?: ($latestPeriode->periode ?? null);
+        $selectedPeriode = $this->input->get('periode') ?: ($latestPeriode->periode ?? date('Y-m'));
 
         // Get filter options
         $data['periodes'] = $this->RankingModel->getPeriodsByTeam($team->id_tim);

@@ -349,7 +349,7 @@ class TimModel extends MY_Model
                 (SELECT COUNT(*)
                  FROM ranking r
                  JOIN customer_service cs ON r.id_cs = cs.id_cs
-                 WHERE cs.id_tim = ? AND r.status = 'published') as total_rankings,
+                 WHERE cs.id_tim = ?) as total_rankings,
                 (SELECT COUNT(*)
                  FROM ranking r
                  JOIN customer_service cs ON r.id_cs = cs.id_cs

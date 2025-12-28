@@ -26,7 +26,7 @@ class RankingController extends Supervisor_Controller
 
 		// Get latest periode
 		$latestPeriode = $this->RankingModel->getLatestPeriodeBySupervisor($userId);
-		$selectedPeriode = $this->input->get('periode') ?: ($latestPeriode->periode ?? null);
+		$selectedPeriode = $this->input->get('periode') ?: ($latestPeriode->periode ?? date('Y-m'));
 
 		// Get filter options
 		$data['periodes'] = $this->RankingModel->getPeriodsBySupervisor($userId);

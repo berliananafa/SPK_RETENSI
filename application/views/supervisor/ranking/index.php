@@ -128,7 +128,7 @@
 												</span>
 											<?php elseif ($rank->status === 'pending_leader'): ?>
 												<span class="badge badge-info">
-													<i class="fe fe-arrow-down"></i> Di Leader
+													<i class="fe fe-arrow-down"></i> Menunggu Approval Leader
 												</span>
 											<?php elseif ($rank->status === 'rejected_supervisor'): ?>
 												<span class="badge badge-danger">

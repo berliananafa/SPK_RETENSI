@@ -296,8 +296,8 @@ class RankingModel extends MY_Model
 			->join('produk p', 'cs.id_produk = p.id_produk')
 			->join('kanal k', 'cs.id_kanal = k.id_kanal')
 			->where('t.id_supervisor', $supervisorId)
-			->where('r.periode', $periode)
-			->where_in('r.status', ['pending_supervisor', 'published']);
+			->where('r.periode', $periode);
+			// ->where_in('r.status', ['pending_supervisor', 'published']);
 
 		if (!empty($filter['id_produk'])) {
 			$this->db->where('cs.id_produk', $filter['id_produk']);
@@ -361,7 +361,7 @@ class RankingModel extends MY_Model
 		$this->db->join('pengguna supervisor', 'supervisor.id_user = t.id_supervisor');
 		// gunakan field id_atasan untuk konsistensi hirarki manager
 		$this->db->where('supervisor.id_atasan', $managerId);
-		$this->db->where('r.status', 'published');
+		// $this->db->where('r.status', 'published');
 
 		$result = $this->db->get()->row();
 		return $result ? (int)$result->total : 0;
@@ -384,7 +384,7 @@ class RankingModel extends MY_Model
 			->join('pengguna supervisor', 't.id_supervisor = supervisor.id_user')
 			->where('supervisor.id_atasan', $managerId)
 			->where('r.periode', $periode)
-			->where('r.status', 'published')
+			// ->where('r.status', 'published')
 			->order_by('r.peringkat', 'ASC')
 			->limit($limit);
 
@@ -456,7 +456,7 @@ class RankingModel extends MY_Model
 			->join('kanal k', 'cs.id_kanal = k.id_kanal', 'left')
 			->where('cs.id_tim', $teamId)
 			->where('r.periode', $periode)
-			->where('r.status', 'published')
+			// ->where('r.status', 'published')
 			->order_by('r.peringkat', 'ASC')
 			->limit($limit);
 
@@ -473,7 +473,7 @@ class RankingModel extends MY_Model
 		$this->db->join('customer_service cs', 'cs.id_cs = r.id_cs');
 		$this->db->join('tim t', 't.id_tim = cs.id_tim');
 		$this->db->where('t.id_supervisor', $supervisorId);
-		$this->db->where('r.status', 'published');
+		// $this->db->where('r.status', 'published');
 
 		$result = $this->db->get()->row();
 		return $result ? (int)$result->total : 0;
@@ -490,7 +490,7 @@ class RankingModel extends MY_Model
 			->join('tim t', 'cs.id_tim = t.id_tim')
 			->where('t.id_supervisor', $supervisorId)
 			->where('r.periode', $periode)
-			->where('r.status', 'published')
+			// ->where('r.status', 'published')
 			->order_by('r.peringkat', 'ASC')
 			->limit($limit);
 
@@ -581,6 +581,6 @@ class RankingModel extends MY_Model
 	 */
 	public function getTopRankingsForDashboard($periode, $limit = 5)
 	{
-		return $this->getTopRankings($periode, $limit, ['status' => 'published']);
+		return $this->getTopRankings($periode, $limit, []);
 	}
 }

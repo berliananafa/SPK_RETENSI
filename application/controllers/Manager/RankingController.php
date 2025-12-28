@@ -30,7 +30,7 @@ class RankingController extends Manager_Controller
 
         // Get latest periode
         $latestPeriode = $this->RankingModel->getLatestPeriodeByManager($managerId);
-        $selectedPeriode = $this->input->get('periode') ?: ($latestPeriode->periode ?? null);
+        $selectedPeriode = $this->input->get('periode') ?: ($latestPeriode->periode ?? date('Y-m'));
 
         // Get filter options
         $data['periodes'] = $this->RankingModel->getPeriodesByManager($managerId);

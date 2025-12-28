@@ -297,7 +297,7 @@ class CustomerServiceModel extends MY_Model
                         ->join('produk p', 'cs.id_produk = p.id_produk')
                         ->join('kanal k', 'cs.id_kanal = k.id_kanal')
                         ->join('nilai n', 'cs.id_cs = n.id_cs', 'left')
-                        ->join("ranking r", "cs.id_cs = r.id_cs {$periodeCondition} AND r.status = 'published'", 'left', false)
+                        ->join("ranking r", "cs.id_cs = r.id_cs {$periodeCondition}", 'left', false)
                         ->where('cs.id_tim', $teamId)
                         ->group_by('cs.id_cs, r.nilai_akhir, r.peringkat, r.periode')
                         ->order_by('r.peringkat', 'ASC')
