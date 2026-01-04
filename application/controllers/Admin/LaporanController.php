@@ -136,7 +136,16 @@ class LaporanController extends Admin_Controller
 		}
 
 		$result = $this->db->get()->row();
-		$total  = (int)($result->total ?? 1); // hindari pembagian 0
+		$total = (int)($result->total ?? 0);
+
+		if ($total === 0) {
+			return [
+				'excellent' => 0,
+				'good'      => 0,
+				'average'   => 0,
+				'poor'      => 0,
+			];
+		}
 
 		return [
 			'excellent' => round((($result->excellent ?? 0) / $total) * 100, 1),
