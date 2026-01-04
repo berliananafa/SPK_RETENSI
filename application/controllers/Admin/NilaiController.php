@@ -22,6 +22,7 @@ class NilaiController extends Admin_Controller
 		$this->load->model('KriteriaModel');
 		$this->load->model('SubKriteriaModel');
 		$this->load->model('TimModel');
+		$this->load->model('ProdukModel');
 
 		// Load library
 		$this->load->library('form_validation');
@@ -49,23 +50,26 @@ class NilaiController extends Admin_Controller
 		enable_sweetalert();
 
 		// Ambil parameter filter dari URL
-		$periode   = $this->input->get('periode') ?? date('Y-m');
+		$periode    = $this->input->get('periode') ?? date('Y-m');
 		$idKriteria = $this->input->get('kriteria');
 		$idTim      = $this->input->get('tim');
+		$idProduk   = $this->input->get('produk');
 
 		// Siapkan filter untuk query data penilaian
 		$filter = [
 			'periode'      => $periode,
 			'id_kriteria'  => $idKriteria,
 			'id_tim'       => $idTim,
+			'id_produk'    => $idProduk,
 		];
 
 		// Ambil data penilaian beserta relasinya
 		$data['penilaian'] = $this->NilaiModel->getAllWithDetails($filter);
 
-		// Data untuk dropdown filter (hanya kriteria yang approved)
+		// Data untuk dropdown filter
 		$data['kriteria'] = $this->KriteriaModel->getAllApproved();
 		$data['tim']      = $this->TimModel->all();
+		$data['produk']   = $this->ProdukModel->all();
 
 		// Hitung statistik dari data yang sudah difilter
 		$totalPenilaian = count($data['penilaian']);
@@ -103,11 +107,11 @@ class NilaiController extends Admin_Controller
 		$data['filter_periode']  = $periode;
 		$data['filter_kriteria'] = $idKriteria;
 		$data['filter_tim']      = $idTim;
+		$data['filter_produk']   = $idProduk;
 
 		// Render halaman
 		render_layout('admin/nilai/index', $data);
 	}
-
 	/**
 	 * Halaman input penilaian (upload Excel)
 	 */

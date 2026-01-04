@@ -28,9 +28,10 @@ class NilaiModel extends MY_Model
 	private function applyFullDetailsJoin($alias = 'nilai')
 	{
 		$this->db->join('customer_service', "{$alias}.id_cs = customer_service.id_cs", 'left')
-				 ->join('produk', 'customer_service.id_produk = produk.id_produk', 'left')
-				 ->join('sub_kriteria', "{$alias}.id_sub_kriteria = sub_kriteria.id_sub_kriteria", 'left')
-				 ->join('kriteria', 'sub_kriteria.id_kriteria = kriteria.id_kriteria', 'left');
+			->join('tim', 'customer_service.id_tim = tim.id_tim', 'left')
+			->join('produk', 'customer_service.id_produk = produk.id_produk', 'left')
+			->join('sub_kriteria', "{$alias}.id_sub_kriteria = sub_kriteria.id_sub_kriteria", 'left')
+			->join('kriteria', 'sub_kriteria.id_kriteria = kriteria.id_kriteria', 'left');
 		return $this;
 	}
 
@@ -40,19 +41,20 @@ class NilaiModel extends MY_Model
 	private function getNilaiDetailsSelect($alias = 'nilai')
 	{
 		return "{$alias}.*,
-				customer_service.id_tim,
-				customer_service.nama_cs,
-				customer_service.nik,
-				produk.nama_produk,
-				kriteria.id_kriteria,
-				kriteria.nama_kriteria,
-				kriteria.kode_kriteria,
-				kriteria.bobot as bobot_kriteria,
-				kriteria.jenis_kriteria,
-				sub_kriteria.id_sub_kriteria,
-				sub_kriteria.nama_sub_kriteria,
-				sub_kriteria.bobot_sub,
-				sub_kriteria.target";
+            customer_service.id_tim,
+            customer_service.nama_cs,
+            customer_service.nik,
+            tim.nama_tim,
+            produk.nama_produk,
+            kriteria.id_kriteria,
+            kriteria.nama_kriteria,
+            kriteria.kode_kriteria,
+            kriteria.bobot as bobot_kriteria,
+            kriteria.jenis_kriteria,
+            sub_kriteria.id_sub_kriteria,
+            sub_kriteria.nama_sub_kriteria,
+            sub_kriteria.bobot_sub,
+            sub_kriteria.target";
 	}
 
 	/**
@@ -91,7 +93,7 @@ class NilaiModel extends MY_Model
 	public function getAllWithDetails($filter = [])
 	{
 		$this->db->select($this->getNilaiDetailsSelect())
-				 ->from($this->table);
+			->from($this->table);
 
 		$this->applyFullDetailsJoin();
 
