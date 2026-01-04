@@ -151,15 +151,50 @@ class CustomerServiceImport
 
     /* ================= EXPORT ================= */
 
-    public function generateExport()
+    /**
+     * Generate file Excel untuk export data Customer Service
+     * 
+     * @param array $filters Array filter ['id_tim' => 1, 'id_produk' => 2, 'id_kanal' => 3]
+     * @return Spreadsheet
+     */
+    public function generateExport($filters = [])
     {
-        $data = $this->CI->CS->getAllWithDetails();
-        $sheet = (new Spreadsheet())->getActiveSheet();
+        // Ambil data berdasarkan filter
+        if (!empty($filters)) {
+            $data = $this->CI->CS->getWithFilters($filters);
+            
+            // Build sheet title dari filter aktif
+            $titleParts = [];
+            if (isset($filters['id_tim'])) {
+                $tim = $this->CI->Tim->find($filters['id_tim']);
+                if ($tim) $titleParts[] = substr($tim->nama_tim, 0, 15);
+            }
+            if (isset($filters['id_produk'])) {
+                $produk = $this->CI->Produk->find($filters['id_produk']);
+                if ($produk) $titleParts[] = substr($produk->nama_produk, 0, 15);
+            }
+            if (isset($filters['id_kanal'])) {
+                $kanal = $this->CI->Kanal->find($filters['id_kanal']);
+                if ($kanal) $titleParts[] = substr($kanal->nama_kanal, 0, 15);
+            }
+            
+            $sheetTitle = !empty($titleParts) ? implode(' - ', $titleParts) : 'CS Filtered';
+            $sheetTitle = substr($sheetTitle, 0, 31); // Excel sheet title limit
+        } else {
+            $data = $this->CI->CS->getAllWithDetails();
+            $sheetTitle = 'Customer Service';
+        }
 
+        $spreadsheet = new Spreadsheet();
+        $sheet = $spreadsheet->getActiveSheet();
+        $sheet->setTitle($sheetTitle);
+
+        // Header kolom
         $headers = array_merge(['No'], self::HEADERS, ['Tanggal Dibuat']);
         $sheet->fromArray($headers, null, 'A1');
         $this->styleHeader($sheet, 1, 'FF4CAF50');
 
+        // Isi data
         $row = 2;
         foreach ($data as $i => $cs) {
             $sheet->fromArray([
@@ -175,10 +210,45 @@ class CustomerServiceImport
             $row++;
         }
 
+        // Auto-size kolom
+        foreach (range('A', 'G') as $col) {
+            $sheet->getColumnDimension($col)->setAutoSize(true);
+        }
+
+        // Tambahkan border
         $this->addBorder($sheet, "A1:G" . ($row - 1));
+        
+        // Freeze header
         $sheet->freezePane('A2');
 
-        return $sheet->getParent();
+        // Tambahkan informasi filter di bawah tabel (jika ada)
+        if (!empty($filters)) {
+            $infoRow = $row + 1;
+            $filterInfo = [];
+            
+            if (isset($filters['id_tim'])) {
+                $tim = $this->CI->Tim->find($filters['id_tim']);
+                if ($tim) $filterInfo[] = 'Tim: ' . $tim->nama_tim;
+            }
+            if (isset($filters['id_produk'])) {
+                $produk = $this->CI->Produk->find($filters['id_produk']);
+                if ($produk) $filterInfo[] = 'Produk: ' . $produk->nama_produk;
+            }
+            if (isset($filters['id_kanal'])) {
+                $kanal = $this->CI->Kanal->find($filters['id_kanal']);
+                if ($kanal) $filterInfo[] = 'Kanal: ' . $kanal->nama_kanal;
+            }
+            
+            if (!empty($filterInfo)) {
+                $sheet->setCellValue('A' . $infoRow, 'Filter:');
+                $sheet->setCellValue('B' . $infoRow, implode(' | ', $filterInfo));
+                $sheet->mergeCells('B' . $infoRow . ':G' . $infoRow);
+                $sheet->getStyle('A' . $infoRow . ':G' . $infoRow)->getFont()->setItalic(true);
+                $sheet->getStyle('A' . $infoRow . ':G' . $infoRow)->getFont()->getColor()->setARGB('FF666666');
+            }
+        }
+
+        return $spreadsheet;
     }
 
     /* ================= IMPORT ================= */

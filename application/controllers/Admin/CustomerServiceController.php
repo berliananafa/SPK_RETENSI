@@ -8,6 +8,7 @@ defined('BASEPATH') or exit('No direct script access allowed');
  * - CRUD (Create, Read, Update, Delete)
  * - Import & Export data Excel
  * - Validasi NIK unik
+ * - Filter by Produk
  */
 class CustomerServiceController extends Admin_Controller
 {
@@ -54,8 +55,33 @@ class CustomerServiceController extends Admin_Controller
 		enable_datatables();
 		enable_sweetalert();
 
-		// Ambil seluruh data Customer Service beserta detailnya
-		$data['customer_services'] = $this->CustomerService->getAllWithDetails();
+		// Ambil filter dari query string
+		$filter_tim = $this->input->get('tim', true);
+		$filter_produk = $this->input->get('produk', true);
+		$filter_kanal = $this->input->get('kanal', true);
+
+		// Build filter array
+		$filters = [];
+		if ($filter_tim) $filters['id_tim'] = $filter_tim;
+		if ($filter_produk) $filters['id_produk'] = $filter_produk;
+		if ($filter_kanal) $filters['id_kanal'] = $filter_kanal;
+
+		// Ambil data Customer Service dengan filter jika ada
+		if (!empty($filters)) {
+			$data['customer_services'] = $this->CustomerService->getWithFilters($filters);
+		} else {
+			$data['customer_services'] = $this->CustomerService->getAllWithDetails();
+		}
+
+		// Set selected filters untuk view
+		$data['selected_tim'] = $filter_tim ?: '';
+		$data['selected_produk'] = $filter_produk ?: '';
+		$data['selected_kanal'] = $filter_kanal ?: '';
+
+		// Ambil data master untuk dropdown filter
+		$data['teams'] = $this->Tim->getAllWithDetails();
+		$data['products'] = $this->Produk->all();
+		$data['channels'] = $this->Kanal->all();
 
 		// Render halaman index
 		render_layout('admin/customer_service/index', $data);
@@ -356,11 +382,48 @@ class CustomerServiceController extends Admin_Controller
 
 	/**
 	 * Export seluruh data Customer Service ke Excel
+	 * Dapat difilter berdasarkan tim, produk, dan kanal
 	 */
 	public function export()
 	{
-		$spreadsheet = $this->customerserviceimport->generateExport();
-		$filename = 'Export_Customer_Service_' . date('YmdHis') . '.xlsx';
+		// Ambil filter dari query string
+		$filter_tim = $this->input->get('tim', true);
+		$filter_produk = $this->input->get('produk', true);
+		$filter_kanal = $this->input->get('kanal', true);
+
+		// Build filter array
+		$filters = [];
+		if ($filter_tim) $filters['id_tim'] = $filter_tim;
+		if ($filter_produk) $filters['id_produk'] = $filter_produk;
+		if ($filter_kanal) $filters['id_kanal'] = $filter_kanal;
+
+		// Generate export dengan atau tanpa filter
+		$spreadsheet = $this->customerserviceimport->generateExport($filters);
+		
+		// Tentukan nama file
+		$filename = 'Export_Customer_Service';
+		
+		// Tambahkan info filter ke nama file
+		if ($filter_tim) {
+			$tim = $this->Tim->find($filter_tim);
+			if ($tim) {
+				$filename .= '_Tim_' . str_replace(' ', '_', $tim->nama_tim);
+			}
+		}
+		if ($filter_produk) {
+			$produk = $this->Produk->find($filter_produk);
+			if ($produk) {
+				$filename .= '_Produk_' . str_replace(' ', '_', $produk->nama_produk);
+			}
+		}
+		if ($filter_kanal) {
+			$kanal = $this->Kanal->find($filter_kanal);
+			if ($kanal) {
+				$filename .= '_Kanal_' . str_replace(' ', '_', $kanal->nama_kanal);
+			}
+		}
+		
+		$filename .= '_' . date('YmdHis') . '.xlsx';
 
 		$this->customerserviceimport->download($spreadsheet, $filename);
 	}
