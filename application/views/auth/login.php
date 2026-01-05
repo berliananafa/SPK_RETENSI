@@ -28,14 +28,14 @@
 					<?= form_open('login', ['id' => 'loginForm']) ?>
 					<div class="login-card">
 						<div class="row no-gutters">
-							<!-- Left Column - Logo & Branding -->
+
+
+							<!-- Left Column - Branding (tanpa logo & nama perusahaan) -->
 							<div class="col-md-5">
 								<div class="login-left">
-									<img src="<?= base_url('assets/img/ethos_logo.png') ?>" alt="Ethos Kreatif Indonesia" class="login-logo">
 									<div class="login-left-content">
-										<!-- <h3>SPK Retensi CS</h3> -->
+										<h3>SPK Retensi CS</h3>
 										<p>Sistem Pendukung Keputusan untuk menentukan Customer Service Retensi Terbaik</p>
-										<span class="badge badge-primary-custom">PT Ethos Kreatif Indonesia</span>
 									</div>
 								</div>
 							</div>
@@ -88,7 +88,7 @@
 									<!-- Footer -->
 									<div class="login-footer">
 										<small class="text-muted">
-											© <?= date('Y') ?> SPK Retensi CS - PT. Ethos Kreatif Indonesia
+											© <?= date('Y') ?> SPK Retensi CS
 										</small>
 									</div>
 								</div>

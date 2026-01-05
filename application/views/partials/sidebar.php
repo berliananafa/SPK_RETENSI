@@ -23,9 +23,18 @@ if ($user_level === 'admin') {
 		<!-- Logo -->
 		<div class="mb-4 w-100 d-flex">
 			<a class="mx-auto mt-2 text-center navbar-brand flex-fill" href="<?= base_url() ?>">
-				<img src="<?= base_url('assets/img/ethos_logo.png') ?>" alt="Ethos Logo"
-					style="max-width: 120px; height: auto;" class="mb-2">
-				<!-- <h4 class="mb-0 text-primary">SPK Retensi</h4> -->
+				<h4 class="mb-0 font-weight-bold"
+					style="
+						font-size:2rem;
+						background: linear-gradient(90deg, #0ea5e9 0%, #3b82f6 100%);
+						-webkit-background-clip: text;
+						-webkit-text-fill-color: transparent;
+						background-clip: text;
+						text-fill-color: transparent;
+						letter-spacing:1.5px;
+						text-shadow: 0 2px 8px rgba(59,130,246,0.10);">
+					SPK Retensi
+				</h4>
 			</a>
 		</div>
 
