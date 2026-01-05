@@ -27,15 +27,6 @@ $user_email = $this->session->userdata('user_email') ?? '';
 				<h6 class="px-3 pt-2 mb-0 dropdown-header"><?= $user_name ?></h6>
 				<small class="px-3 text-muted"><?= $user_email ?></small>
 				<div class="dropdown-divider"></div>
-				<a class="dropdown-item" href="<?= base_url('profile') ?>">
-					<i class="mr-2 fe fe-user"></i> Profil Saya
-				</a>
-				<?php if (in_array($this->session->userdata('user_level'), ['admin'])): ?>
-				<a class="dropdown-item" href="<?= base_url('admin/settings') ?>">
-					<i class="mr-2 fe fe-settings"></i> Pengaturan
-				</a>
-				<?php endif; ?>
-				<div class="dropdown-divider"></div>
 				<a class="dropdown-item" href="<?= base_url('logout') ?>" id="logoutBtn">
 					<i class="mr-2 fe fe-log-out"></i> Keluar
 				</a>
@@ -44,39 +35,6 @@ $user_email = $this->session->userdata('user_email') ?? '';
 	</ul>
 </nav>
 
-<script>
-	// Logout confirmation with SweetAlert
-	document.addEventListener('DOMContentLoaded', function() {
-		const logoutBtn = document.getElementById('logoutBtn');
-		if (logoutBtn) {
-			logoutBtn.addEventListener('click', function(e) {
-				e.preventDefault();
-				const url = this.href;
-				
-				if (typeof Swal !== 'undefined') {
-					Swal.fire({
-						title: 'Keluar dari Sistem?',
-						text: 'Anda akan keluar dari sesi login saat ini',
-						icon: 'question',
-						showCancelButton: true,
-						confirmButtonColor: '#1b68ff',
-						cancelButtonColor: '#6c757d',
-						confirmButtonText: 'Ya, Keluar',
-						cancelButtonText: 'Batal'
-					}).then((result) => {
-						if (result.isConfirmed) {
-							window.location.href = url;
-						}
-					});
-				} else {
-					if (confirm('Yakin ingin keluar?')) {
-						window.location.href = url;
-					}
-				}
-			});
-		}
-	});
-</script>
 
 <!-- Modal Notifications -->
 <!-- <div class="modal fade modal-notif modal-slide" tabindex="-1" role="dialog" aria-labelledby="notifModalLabel"
