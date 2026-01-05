@@ -36,8 +36,8 @@ class RankingModel extends MY_Model
 	private function applyBasicRankingJoin($alias = 'ranking')
 	{
 		$this->db->join('customer_service', "{$alias}.id_cs = customer_service.id_cs", 'left')
-				 ->join('pengguna leader', "{$alias}.approved_by_leader = leader.id_user", 'left')
-				 ->join('pengguna supervisor', "{$alias}.approved_by_supervisor = supervisor.id_user", 'left');
+			->join('pengguna leader', "{$alias}.approved_by_leader = leader.id_user", 'left')
+			->join('pengguna supervisor', "{$alias}.approved_by_supervisor = supervisor.id_user", 'left');
 		return $this;
 	}
 
@@ -47,11 +47,11 @@ class RankingModel extends MY_Model
 	private function applyFullRankingJoin($alias = 'ranking')
 	{
 		$this->db->join('customer_service', "{$alias}.id_cs = customer_service.id_cs", 'left')
-				 ->join('produk', 'customer_service.id_produk = produk.id_produk', 'left')
-				 ->join('kanal', 'customer_service.id_kanal = kanal.id_kanal', 'left')
-				 ->join('tim', 'customer_service.id_tim = tim.id_tim', 'left')
-				 ->join('pengguna leader', "{$alias}.approved_by_leader = leader.id_user", 'left')
-				 ->join('pengguna supervisor', "{$alias}.approved_by_supervisor = supervisor.id_user", 'left');
+			->join('produk', 'customer_service.id_produk = produk.id_produk', 'left')
+			->join('kanal', 'customer_service.id_kanal = kanal.id_kanal', 'left')
+			->join('tim', 'customer_service.id_tim = tim.id_tim', 'left')
+			->join('pengguna leader', "{$alias}.approved_by_leader = leader.id_user", 'left')
+			->join('pengguna supervisor', "{$alias}.approved_by_supervisor = supervisor.id_user", 'left');
 		return $this;
 	}
 
@@ -113,7 +113,7 @@ class RankingModel extends MY_Model
 	public function getAllWithDetails()
 	{
 		$this->db->select($this->getRankingBasicSelect())
-				 ->from($this->table);
+			->from($this->table);
 
 		$this->applyBasicRankingJoin();
 
@@ -129,7 +129,7 @@ class RankingModel extends MY_Model
 	public function getByIdWithDetails($id)
 	{
 		$this->db->select($this->getRankingBasicSelect())
-				 ->from($this->table);
+			->from($this->table);
 
 		$this->applyBasicRankingJoin();
 
@@ -144,7 +144,7 @@ class RankingModel extends MY_Model
 	public function getByPeriode($periode, $filter = [])
 	{
 		$this->db->select($this->getRankingFullSelect())
-				 ->from($this->table);
+			->from($this->table);
 
 		$this->applyFullRankingJoin();
 
@@ -232,11 +232,11 @@ class RankingModel extends MY_Model
 						  customer_service.nik,
 						  tim.nama_tim,
 						  produk.nama_produk')
-				 ->from($this->table)
-				 ->join('customer_service', 'ranking.id_cs = customer_service.id_cs', 'left')
-				 ->join('tim', 'customer_service.id_tim = tim.id_tim', 'left')
-				 ->join('produk', 'customer_service.id_produk = produk.id_produk', 'left')
-				 ->where('ranking.periode', $periode);
+			->from($this->table)
+			->join('customer_service', 'ranking.id_cs = customer_service.id_cs', 'left')
+			->join('tim', 'customer_service.id_tim = tim.id_tim', 'left')
+			->join('produk', 'customer_service.id_produk = produk.id_produk', 'left')
+			->where('ranking.periode', $periode);
 
 		$this->applyRankingFilters($filter);
 
@@ -297,7 +297,7 @@ class RankingModel extends MY_Model
 			->join('kanal k', 'cs.id_kanal = k.id_kanal')
 			->where('t.id_supervisor', $supervisorId)
 			->where('r.periode', $periode);
-			// ->where_in('r.status', ['pending_supervisor', 'published']);
+		// ->where_in('r.status', ['pending_supervisor', 'published']);
 
 		if (!empty($filter['id_produk'])) {
 			$this->db->where('cs.id_produk', $filter['id_produk']);
@@ -582,5 +582,24 @@ class RankingModel extends MY_Model
 	public function getTopRankingsForDashboard($periode, $limit = 5)
 	{
 		return $this->getTopRankings($periode, $limit, []);
+	}
+
+	/**
+	 * Get rankings by periode, team, and produk
+	 * Filter by product through customer_service relation
+	 */
+	public function getByPeriodeTeamAndProduk($periode, $teamId, $produkId)
+	{
+		$this->db->select('r.*, cs.nik, cs.nama_cs, p.nama_produk, k.nama_kanal')
+			->from("{$this->table} r")
+			->join('customer_service cs', 'r.id_cs = cs.id_cs')
+			->join('produk p', 'cs.id_produk = p.id_produk')
+			->join('kanal k', 'cs.id_kanal = k.id_kanal')
+			->where('cs.id_tim', $teamId)
+			->where('r.periode', $periode)
+			->where('cs.id_produk', $produkId)
+			->order_by('r.peringkat', 'ASC');
+
+		return $this->db->get()->result();
 	}
 }

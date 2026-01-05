@@ -58,7 +58,7 @@ class ProfileMatching
 		foreach ($dataPenilaian as $row) {
 			// Mapping nilai ASLI langsung ke range untuk dapat nilai konversi (1-5)
 			$gap = $this->hitungGap(
-				$row->id_sub_kriteria, 
+				$row->id_sub_kriteria,
 				(float) $row->nilai,
 				$row->jenis_kriteria
 			);
@@ -213,8 +213,35 @@ class ProfileMatching
 			];
 		}
 
-		// Urutkan berdasarkan skor tertinggi
-		usort($rankings, fn($a, $b) => $b->skor_akhir <=> $a->skor_akhir);
+		// Urutkan dua langkah: skor_akhir DESC, jika sama baru nilai KPI DESC
+		// 1. Ambil nilai KPI untuk semua CS (sekali saja)
+		$ci = &get_instance();
+		$ci->load->model('NilaiModel');
+		foreach ($rankings as $i => $r) {
+			$nilaiKpi = 0;
+			$nilaiKpiRows = $ci->NilaiModel->getByCustomerService($r->id_cs);
+			foreach ($nilaiKpiRows as $row) {
+				// Tambahkan cek periode
+				if (($row->periode ?? null) != $r->periode) continue;
+				if (isset($row->nama_sub_kriteria) && stripos($row->nama_sub_kriteria, 'KPI') !== false) {
+					$nilaiKpi = (float)$row->nilai;
+					break;
+				}
+				if (isset($row->nama_sub_kriteria) && stripos($row->nama_sub_kriteria, 'Key Performance Indeks') !== false) {
+					$nilaiKpi = (float)$row->nilai;
+					break;
+				}
+			}
+			$rankings[$i]->nilai_kpi = $nilaiKpi;
+		}
+
+		// 2. Urutkan: skor_akhir DESC, jika sama nilai_kpi DESC
+		usort($rankings, function($a, $b) {
+			if ($b->skor_akhir == $a->skor_akhir) {
+				return $b->nilai_kpi <=> $a->nilai_kpi;
+			}
+			return $b->skor_akhir <=> $a->skor_akhir;
+		});
 
 		// Tambahkan peringkat
 		foreach ($rankings as $i => $ranking) {

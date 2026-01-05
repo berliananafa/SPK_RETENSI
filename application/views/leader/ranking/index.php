@@ -18,12 +18,25 @@
 							value="<?= $selected_periode ?? date('Y-m') ?>">
 					</div>
 					<div class="col-md-4">
+						<label for="filterProduk" class="font-weight-bold">Produk:</label>
+						<select class="form-control form-control-sm" id="filterProduk" name="id_produk">
+							<option value="">Semua Produk</option>
+							<?php if (!empty($produk_list)): ?>
+								<?php foreach ($produk_list as $produk): ?>
+									<option value="<?= htmlspecialchars($produk->id_produk) ?>" <?= ($selected_produk == $produk->id_produk) ? 'selected' : '' ?>>
+										<?= htmlspecialchars($produk->nama_produk) ?>
+									</option>
+								<?php endforeach; ?>
+							<?php endif; ?>
+						</select>
+					</div>
+					<div class="col-md-2">
 						<label class="font-weight-bold d-block">&nbsp;</label>
 						<button class="btn btn-info btn-sm btn-block" id="btnFilter">
 							<i class="fe fe-filter"></i> Filter Data
 						</button>
 					</div>
-					<div class="col-md-4">
+					<div class="col-md-2">
 						<label class="font-weight-bold d-block">&nbsp;</label>
 						<button class="btn btn-secondary btn-sm btn-block" id="btnClearFilter">
 							<i class="fe fe-x-circle"></i> Clear
@@ -31,30 +44,23 @@
 					</div>
 				</div>
 
-				<!-- Info Tim -->
-				<?php if (!empty($team)): ?>
-					<div class="alert alert-info mb-3">
-						<i class="fe fe-users"></i> <strong>Tim Anda:</strong> <?= htmlspecialchars($team->nama_tim) ?>
-					</div>
-				<?php endif; ?>
-
 				<!-- Rankings Table -->
-				<?php if (!empty($rankings)): ?>
-					<div class="table-responsive">
-						<table id="dataTable-1" class="table table-hover table-striped datatables">
-							<thead class="thead-light">
-								<tr>
-									<th width="5%">Rank</th>
-									<th>NIK</th>
-									<th>Nama CS</th>
-									<th>Produk</th>
-									<th>Kanal</th>
-									<th>Nilai Akhir</th>
-									<th>Status</th>
-									<th width="20%" class="text-center">Aksi</th>
-								</tr>
-							</thead>
-							<tbody>
+				<div class="table-responsive">
+					<table id="dataTable-1" class="table table-hover table-striped datatables">
+						<thead class="thead-light">
+							<tr>
+								<th width="5%">Rank</th>
+								<th>NIK</th>
+								<th>Nama CS</th>
+								<th>Produk</th>
+								<th>Kanal</th>
+								<th>Nilai Akhir</th>
+								<th>Status</th>
+								<th width="20%" class="text-center">Aksi</th>
+							</tr>
+						</thead>
+						<tbody>
+							<?php if (!empty($rankings)): ?>
 								<?php foreach ($rankings as $index => $rank): ?>
 									<tr>
 										<td>
@@ -94,11 +100,15 @@
 												</span>
 											<?php elseif ($rank->status === 'pending_supervisor'): ?>
 												<span class="badge badge-info">
-													<i class="fe fe-arrow-up"></i> Menungguu Approval Supervisor
+													<i class="fe fe-arrow-up"></i> Menunggu Approval Supervisor
 												</span>
 											<?php elseif ($rank->status === 'rejected_leader'): ?>
 												<span class="badge badge-danger">
 													<i class="fe fe-x"></i> Ditolak Leader
+												</span>
+											<?php elseif ($rank->status === 'rejected_supervisor'): ?>
+												<span class="badge badge-danger">
+													<i class="fe fe-x"></i> Ditolak Supervisor
 												</span>
 											<?php elseif ($rank->status === 'published'): ?>
 												<span class="badge badge-success">
@@ -109,32 +119,78 @@
 											<?php endif; ?>
 										</td>
 										<td class="text-center">
-											<button class="btn btn-sm btn-info btn-detail mb-1" data-id="<?= $rank->id_cs ?>" title="Detail">
+											<!-- Tombol Detail - Selalu tampil -->
+											<button class="btn btn-sm btn-info btn-detail mb-1"
+												data-id="<?= $rank->id_cs ?>"
+												title="Detail Penilaian">
 												<i class="fe fe-eye"></i>
 											</button>
+
 											<?php if ($rank->status === 'pending_leader'): ?>
-												<button class="btn btn-sm btn-success btn-approve mb-1" data-id="<?= $rank->id_ranking ?>">
+												<!-- Tombol Approve & Reject - Hanya untuk status pending_leader -->
+												<button class="btn btn-sm btn-success btn-approve mb-1"
+													data-id="<?= $rank->id_ranking ?>"
+													title="Setujui">
 													<i class="fe fe-check"></i>
 												</button>
-												<button class="btn btn-sm btn-danger btn-reject mb-1" data-id="<?= $rank->id_ranking ?>">
+												<button class="btn btn-sm btn-danger btn-reject mb-1"
+													data-id="<?= $rank->id_ranking ?>"
+													title="Tolak">
 													<i class="fe fe-x"></i>
 												</button>
-											<?php elseif (!empty($rank->approved_by_leader)): ?>
-												<br><span class="text-success small"><i class="fe fe-check-circle"></i> Approved</span>
-											<?php else: ?>
-												<!-- <br><span class="text-muted small">-</span> -->
+											<?php elseif ($rank->status === 'pending_supervisor'): ?>
+												<!-- Status: Menunggu Supervisor -->
+												<br>
+												<span class="badge badge-info">
+													<i class="fe fe-check-circle"></i> Disetujui Leader
+												</span>
+											<?php elseif ($rank->status === 'rejected_leader'): ?>
+												<!-- Status: Ditolak oleh Leader -->
+												<br>
+												<span class="badge badge-danger">
+													<i class="fe fe-x-circle"></i> Ditolak
+												</span>
+												<?php if (!empty($rank->leader_note)): ?>
+													<button class="btn btn-sm btn-outline-secondary mt-1"
+														data-toggle="tooltip"
+														title="<?= htmlspecialchars($rank->leader_note) ?>">
+														<i class="fe fe-info"></i>
+													</button>
+												<?php endif; ?>
+											<?php elseif ($rank->status === 'rejected_supervisor'): ?>
+												<!-- Status: Ditolak oleh Supervisor -->
+												<br>
+												<span class="badge badge-danger">
+													<i class="fe fe-x-circle"></i> Ditolak Supervisor
+												</span>
+												<?php if (!empty($rank->supervisor_note)): ?>
+													<button class="btn btn-sm btn-outline-secondary mt-1"
+														data-toggle="tooltip"
+														title="<?= htmlspecialchars($rank->supervisor_note) ?>">
+														<i class="fe fe-info"></i>
+													</button>
+												<?php endif; ?>
+											<?php elseif ($rank->status === 'published'): ?>
+												<!-- Status: Published -->
+												<br>
+												<span class="badge badge-success">
+													<i class="fe fe-check-circle"></i> Published
+												</span>
 											<?php endif; ?>
 										</td>
 									</tr>
 								<?php endforeach; ?>
-							</tbody>
-						</table>
-					</div>
-				<?php else: ?>
-					<div class="alert alert-info">
-						<i class="fe fe-alert-circle"></i> Belum ada data ranking untuk periode ini.
-					</div>
-				<?php endif; ?>
+							<?php else: ?>
+								<tr>
+									<td colspan="8" class="text-center py-4">
+										<i class="fe fe-inbox text-muted" style="font-size: 48px;"></i>
+										<p class="text-muted mt-2 mb-0">Belum ada data ranking untuk periode ini.</p>
+									</td>
+								</tr>
+							<?php endif; ?>
+						</tbody>
+					</table>
+				</div>
 			</div>
 		</div>
 	</div>
@@ -199,8 +255,12 @@ ob_start();
 		// Filter button
 		$('#btnFilter').on('click', function() {
 			var periode = $('#filterPeriode').val();
+			var id_produk = $('#filterProduk').val();
 			var url = '<?= base_url('leader/ranking') ?>?';
-			if (periode) url += 'periode=' + periode;
+			var params = [];
+			if (periode) params.push('periode=' + encodeURIComponent(periode));
+			if (id_produk) params.push('id_produk=' + encodeURIComponent(id_produk));
+			if (params.length > 0) url += params.join('&');
 			window.location.href = url;
 		});
 
@@ -271,7 +331,9 @@ ob_start();
 			$.ajax({
 				url: url + currentRankingId,
 				method: 'POST',
-				data: { note: note },
+				data: {
+					note: note
+				},
 				dataType: 'json',
 				headers: {
 					'X-Requested-With': 'XMLHttpRequest'
@@ -294,17 +356,17 @@ ob_start();
 			});
 		});
 
-	// Detail button - Load detail modal
-	$('.btn-detail').on('click', function(e) {
-		e.preventDefault();
-		const id = $(this).data('id');
-		const periode = '<?= htmlspecialchars($selected_periode ?? date('Y-m')) ?>';
+		// Detail button - Load detail modal
+		$('.btn-detail').on('click', function(e) {
+			e.preventDefault();
+			const id = $(this).data('id');
+			const periode = '<?= htmlspecialchars($selected_periode ?? date('Y-m')) ?>';
 
-		// Show modal
-		$('#modalDetail').modal('show');
+			// Show modal
+			$('#modalDetail').modal('show');
 
-		// Load content via AJAX
-		$('#detailContent').html(`
+			// Load content via AJAX
+			$('#detailContent').html(`
 			<div class="text-center py-5">
 				<div class="spinner-border text-primary" role="status">
 					<span class="sr-only">Loading...</span>
@@ -312,26 +374,26 @@ ob_start();
 			</div>
 		`);
 
-		$.ajax({
-			url: '<?= base_url('leader/ranking/detail') ?>',
-			method: 'GET',
-			data: {
-				id: id,
-				periode: periode
-			},
-			success: function(response) {
-				$('#detailContent').html(response);
-			},
-			error: function(xhr) {
-				$('#detailContent').html(`
+			$.ajax({
+				url: '<?= base_url('leader/ranking/detail') ?>',
+				method: 'GET',
+				data: {
+					id: id,
+					periode: periode
+				},
+				success: function(response) {
+					$('#detailContent').html(response);
+				},
+				error: function(xhr) {
+					$('#detailContent').html(`
 					<div class="alert alert-danger">
 						<i class="fe fe-alert-circle"></i> Gagal memuat data detail.
 					</div>
 				`);
-			}
+				}
+			});
 		});
 	});
-});
 </script>
 <?php
 add_js(ob_get_clean());

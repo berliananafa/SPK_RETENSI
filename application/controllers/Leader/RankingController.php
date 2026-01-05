@@ -1,311 +1,328 @@
 <?php
-defined('BASEPATH') OR exit('No direct script access allowed');
+defined('BASEPATH') or exit('No direct script access allowed');
 
 class RankingController extends Leader_Controller
 {
-    public function __construct()
-    {
-        parent::__construct();
-        $this->load->model(['RankingModel', 'NilaiModel', 'CustomerServiceModel']);
-        $this->load->library('ProfileMatching');
-    }
+	public function __construct()
+	{
+		parent::__construct();
+		$this->load->model(['RankingModel', 'NilaiModel', 'CustomerServiceModel']);
+		$this->load->library('ProfileMatching');
+	}
 
-    public function index()
-    {
-        set_page_title('Ranking Tim');
-        set_breadcrumb([
-            ['title' => 'Dashboard', 'url' => base_url('leader/dashboard')],
-            ['title' => 'Ranking Tim']
-        ]);
+	public function index()
+	{
+		set_page_title('Ranking Tim');
+		set_breadcrumb([
+			['title' => 'Dashboard', 'url' => base_url('leader/dashboard')],
+			['title' => 'Ranking Tim']
+		]);
 
-        enable_datatables();
-        enable_charts();
-        enable_sweetalert();
+		enable_datatables();
+		enable_charts();
+		enable_sweetalert();
 
-        $userId = $this->session->userdata('user_id');
+		$userId = $this->session->userdata('user_id');
 
-        // Get tim yang dipimpin leader
-        $this->load->model(['TimModel', 'ProdukModel', 'KanalModel']);
-        $teams = $this->TimModel->getByLeader($userId);
-        $team = !empty($teams) ? $teams[0] : null;
+		// Get tim yang dipimpin leader
+		$this->load->model(['TimModel', 'ProdukModel', 'KanalModel']);
+		$teams = $this->TimModel->getByLeader($userId);
+		$team = !empty($teams) ? $teams[0] : null;
 
-        if (!$team) {
-            $this->session->set_flashdata('warning', 'Anda belum memimpin tim');
-            redirect('leader/dashboard');
-            return;
-        }
+		if (!$team) {
+			$this->session->set_flashdata('warning', 'Anda belum memimpin tim');
+			redirect('leader/dashboard');
+			return;
+		}
 
-        // Get latest periode
-        $latestPeriode = $this->RankingModel->getLatestPeriodeByTeam($team->id_tim);
-        $selectedPeriode = $this->input->get('periode') ?: ($latestPeriode->periode ?? date('Y-m'));
+		// Get latest periode
+		$latestPeriode = $this->RankingModel->getLatestPeriodeByTeam($team->id_tim);
+		$selectedPeriode = $this->input->get('periode') ?: ($latestPeriode->periode ?? date('Y-m'));
 
-        // Get filter options
-        $data['periodes'] = $this->RankingModel->getPeriodsByTeam($team->id_tim);
-        $data['team'] = $team;
-        $data['selected_periode'] = $selectedPeriode;
-        $data['rankings'] = [];
+		// Get filter options
+		$data['periodes'] = $this->RankingModel->getPeriodsByTeam($team->id_tim);
+		$data['team'] = $team;
+		$data['selected_periode'] = $selectedPeriode;
+		$data['rankings'] = [];
 
-        if ($selectedPeriode) {
-            $data['rankings'] = $this->RankingModel->getByPeriodeAndTeam($selectedPeriode, $team->id_tim);
-        }
+		// Ambil semua produk aktif
+		$this->load->model('ProdukModel');
+		$data['produk_list'] = $this->ProdukModel->getActive();
+		$data['selected_produk'] = $this->input->get('id_produk') ?? '';
 
-        render_layout('leader/ranking/index', $data);
-    }
+		// Query ranking dengan filter
+		if ($selectedPeriode) {
+			if (!empty($data['selected_produk'])) {
+				$data['rankings'] = $this->RankingModel->getByPeriodeTeamAndProduk(
+					$selectedPeriode,
+					$team->id_tim,
+					$data['selected_produk']
+				);
+			} else {
+				$data['rankings'] = $this->RankingModel->getByPeriodeAndTeam(
+					$selectedPeriode,
+					$team->id_tim
+				);
+			}
+		}
 
-    /**
-     * Approve ranking oleh leader (AJAX POST)
-     * Leader approve first, then goes to supervisor
-     */
-    public function approve($id = null)
-    {
-        if (!$this->input->is_ajax_request() || $this->input->method() !== 'post') {
-            show_error('Invalid request method', 405);
-        }
+		render_layout('leader/ranking/index', $data);
+	}
 
-        if (empty($id)) {
-            $this->output->set_status_header(400);
-            echo json_encode(['status' => 'error', 'message' => 'ID ranking tidak diberikan']);
-            return;
-        }
+	/**
+	 * Approve ranking oleh leader (AJAX POST)
+	 * Leader approve first, then goes to supervisor
+	 */
+	public function approve($id = null)
+	{
+		if (!$this->input->is_ajax_request() || $this->input->method() !== 'post') {
+			show_error('Invalid request method', 405);
+		}
 
-        $leaderId = $this->session->userdata('user_id');
-        $note = $this->input->post('note') ?? '';
+		if (empty($id)) {
+			$this->output->set_status_header(400);
+			echo json_encode(['status' => 'error', 'message' => 'ID ranking tidak diberikan']);
+			return;
+		}
 
-        // Ambil ranking dengan detail
-        $ranking = $this->RankingModel->getByIdWithDetails($id);
-        if (!$ranking) {
-            $this->output->set_status_header(404);
-            echo json_encode(['status' => 'error', 'message' => 'Ranking tidak ditemukan']);
-            return;
-        }
+		$leaderId = $this->session->userdata('user_id');
+		$note = $this->input->post('note') ?? '';
 
-        // Validasi: ranking harus milik tim yang dipimpin leader ini
-        $this->load->model('TimModel');
-        $teams = $this->TimModel->getByLeader($leaderId);
-        $team = !empty($teams) ? $teams[0] : null;
+		// Ambil ranking dengan detail
+		$ranking = $this->RankingModel->getByIdWithDetails($id);
+		if (!$ranking) {
+			$this->output->set_status_header(404);
+			echo json_encode(['status' => 'error', 'message' => 'Ranking tidak ditemukan']);
+			return;
+		}
 
-        if (!$team || $team->id_tim != $ranking->id_tim) {
-            $this->output->set_status_header(403);
-            echo json_encode(['status' => 'error', 'message' => 'Anda tidak memiliki akses ke ranking ini']);
-            return;
-        }
+		// Validasi: ranking harus milik tim yang dipimpin leader ini
+		$this->load->model('TimModel');
+		$teams = $this->TimModel->getByLeader($leaderId);
+		$team = !empty($teams) ? $teams[0] : null;
 
-        // Validasi status: harus pending_leader
-        if ($ranking->status !== 'pending_leader') {
-            $this->output->set_status_header(400);
-            echo json_encode(['status' => 'error', 'message' => 'Ranking tidak dalam status pending leader']);
-            return;
-        }
+		if (!$team || $team->id_tim != $ranking->id_tim) {
+			$this->output->set_status_header(403);
+			echo json_encode(['status' => 'error', 'message' => 'Anda tidak memiliki akses ke ranking ini']);
+			return;
+		}
 
-        // Update: Leader approve -> goes to Supervisor
-        $update = [
-            'approved_by_leader' => $leaderId,
-            'approved_at_leader' => date('Y-m-d H:i:s'),
-            'leader_note' => $note,
-            'status' => 'pending_supervisor'
-        ];
+		// Validasi status: harus pending_leader
+		if ($ranking->status !== 'pending_leader') {
+			$this->output->set_status_header(400);
+			echo json_encode(['status' => 'error', 'message' => 'Ranking tidak dalam status pending leader']);
+			return;
+		}
 
-        $saved = $this->RankingModel->updateById($id, $update);
-        if ($saved) {
-            $this->output->set_content_type('application/json');
-            echo json_encode(['status' => 'success', 'message' => 'Ranking berhasil disetujui dan diteruskan ke Supervisor']);
-        } else {
-            $this->output->set_status_header(500);
-            echo json_encode(['status' => 'error', 'message' => 'Gagal menyimpan perubahan']);
-        }
-    }
+		// Update: Leader approve -> goes to Supervisor
+		$update = [
+			'approved_by_leader' => $leaderId,
+			'approved_at_leader' => date('Y-m-d H:i:s'),
+			'leader_note' => $note,
+			'status' => 'pending_supervisor'
+		];
 
-    /**
-     * Reject ranking oleh leader (AJAX POST)
-     */
-    public function reject($id = null)
-    {
-        if (!$this->input->is_ajax_request() || $this->input->method() !== 'post') {
-            show_error('Invalid request method', 405);
-        }
+		$saved = $this->RankingModel->updateById($id, $update);
+		if ($saved) {
+			$this->output->set_content_type('application/json');
+			echo json_encode(['status' => 'success', 'message' => 'Ranking berhasil disetujui dan diteruskan ke Supervisor']);
+		} else {
+			$this->output->set_status_header(500);
+			echo json_encode(['status' => 'error', 'message' => 'Gagal menyimpan perubahan']);
+		}
+	}
 
-        if (empty($id)) {
-            $this->output->set_status_header(400);
-            echo json_encode(['status' => 'error', 'message' => 'ID ranking tidak diberikan']);
-            return;
-        }
+	/**
+	 * Reject ranking oleh leader (AJAX POST)
+	 */
+	public function reject($id = null)
+	{
+		if (!$this->input->is_ajax_request() || $this->input->method() !== 'post') {
+			show_error('Invalid request method', 405);
+		}
 
-        $leaderId = $this->session->userdata('user_id');
-        $note = $this->input->post('note') ?? '';
+		if (empty($id)) {
+			$this->output->set_status_header(400);
+			echo json_encode(['status' => 'error', 'message' => 'ID ranking tidak diberikan']);
+			return;
+		}
 
-        if (empty($note)) {
-            $this->output->set_status_header(400);
-            echo json_encode(['status' => 'error', 'message' => 'Catatan penolakan harus diisi']);
-            return;
-        }
+		$leaderId = $this->session->userdata('user_id');
+		$note = $this->input->post('note') ?? '';
 
-        // Ambil ranking dengan detail
-        $ranking = $this->RankingModel->getByIdWithDetails($id);
-        if (!$ranking) {
-            $this->output->set_status_header(404);
-            echo json_encode(['status' => 'error', 'message' => 'Ranking tidak ditemukan']);
-            return;
-        }
+		if (empty($note)) {
+			$this->output->set_status_header(400);
+			echo json_encode(['status' => 'error', 'message' => 'Catatan penolakan harus diisi']);
+			return;
+		}
 
-        // Validasi: ranking harus milik tim yang dipimpin leader ini
-        $this->load->model('TimModel');
-        $teams = $this->TimModel->getByLeader($leaderId);
-        $team = !empty($teams) ? $teams[0] : null;
+		// Ambil ranking dengan detail
+		$ranking = $this->RankingModel->getByIdWithDetails($id);
+		if (!$ranking) {
+			$this->output->set_status_header(404);
+			echo json_encode(['status' => 'error', 'message' => 'Ranking tidak ditemukan']);
+			return;
+		}
 
-        if (!$team || $team->id_tim != $ranking->id_tim) {
-            $this->output->set_status_header(403);
-            echo json_encode(['status' => 'error', 'message' => 'Anda tidak memiliki akses ke ranking ini']);
-            return;
-        }
+		// Validasi: ranking harus milik tim yang dipimpin leader ini
+		$this->load->model('TimModel');
+		$teams = $this->TimModel->getByLeader($leaderId);
+		$team = !empty($teams) ? $teams[0] : null;
 
-        // Validasi status
-        if ($ranking->status !== 'pending_leader') {
-            $this->output->set_status_header(400);
-            echo json_encode(['status' => 'error', 'message' => 'Ranking tidak dalam status pending leader']);
-            return;
-        }
+		if (!$team || $team->id_tim != $ranking->id_tim) {
+			$this->output->set_status_header(403);
+			echo json_encode(['status' => 'error', 'message' => 'Anda tidak memiliki akses ke ranking ini']);
+			return;
+		}
 
-        // Update: Leader reject
-        $update = [
-            'approved_by_leader' => $leaderId,
-            'approved_at_leader' => date('Y-m-d H:i:s'),
-            'leader_note' => $note,
-            'status' => 'rejected_leader'
-        ];
+		// Validasi status
+		if ($ranking->status !== 'pending_leader') {
+			$this->output->set_status_header(400);
+			echo json_encode(['status' => 'error', 'message' => 'Ranking tidak dalam status pending leader']);
+			return;
+		}
 
-        $saved = $this->RankingModel->updateById($id, $update);
-        if ($saved) {
-            $this->output->set_content_type('application/json');
-            echo json_encode(['status' => 'success', 'message' => 'Ranking berhasil ditolak']);
-        } else {
-            $this->output->set_status_header(500);
-            echo json_encode(['status' => 'error', 'message' => 'Gagal menyimpan perubahan']);
-        }
-    }
+		// Update: Leader reject
+		$update = [
+			'approved_by_leader' => $leaderId,
+			'approved_at_leader' => date('Y-m-d H:i:s'),
+			'leader_note' => $note,
+			'status' => 'rejected_leader'
+		];
 
-    /**
-     * Detail ranking per CS (AJAX load untuk modal)
-     */
-    public function detail()
-    {
-        $idCs = $this->input->get('id');
-        $periode = $this->input->get('periode') ?? date('Y-m');
+		$saved = $this->RankingModel->updateById($id, $update);
+		if ($saved) {
+			$this->output->set_content_type('application/json');
+			echo json_encode(['status' => 'success', 'message' => 'Ranking berhasil ditolak']);
+		} else {
+			$this->output->set_status_header(500);
+			echo json_encode(['status' => 'error', 'message' => 'Gagal menyimpan perubahan']);
+		}
+	}
 
-        if (empty($idCs)) {
-            echo '<div class="p-4 text-center text-danger">Parameter ID tidak ditemukan.</div>';
-            return;
-        }
+	/**
+	 * Detail ranking per CS (AJAX load untuk modal)
+	 */
+	public function detail()
+	{
+		$idCs = $this->input->get('id');
+		$periode = $this->input->get('periode') ?? date('Y-m');
 
-        $leaderId = $this->session->userdata('user_id');
+		if (empty($idCs)) {
+			echo '<div class="p-4 text-center text-danger">Parameter ID tidak ditemukan.</div>';
+			return;
+		}
 
-        // Validasi akses: CS harus dari tim yang dipimpin leader
-        $this->load->model('TimModel');
-        $teams = $this->TimModel->getByLeader($leaderId);
-        $team = !empty($teams) ? $teams[0] : null;
+		$leaderId = $this->session->userdata('user_id');
 
-        if (!$team) {
-            echo '<div class="p-4 text-center text-danger">Anda belum memimpin tim.</div>';
-            return;
-        }
+		// Validasi akses: CS harus dari tim yang dipimpin leader
+		$this->load->model('TimModel');
+		$teams = $this->TimModel->getByLeader($leaderId);
+		$team = !empty($teams) ? $teams[0] : null;
 
-        // Ambil seluruh nilai CS
-        $nilaiAll = $this->NilaiModel->getByCustomerService($idCs);
+		if (!$team) {
+			echo '<div class="p-4 text-center text-danger">Anda belum memimpin tim.</div>';
+			return;
+		}
 
-        // Filter berdasarkan periode
-        $nilai = array_filter($nilaiAll, fn($r) => ($r->periode ?? '') == $periode);
+		// Ambil seluruh nilai CS
+		$nilaiAll = $this->NilaiModel->getByCustomerService($idCs);
 
-        if (empty($nilai)) {
-            echo '<div class="p-4 text-center text-muted">Belum ada penilaian untuk periode ini.</div>';
-            return;
-        }
+		// Filter berdasarkan periode
+		$nilai = array_filter($nilaiAll, fn($r) => ($r->periode ?? '') == $periode);
 
-        // Hitung NCF, NSF, dan skor akhir
-        $rows = [];
-        $totalCF = $totalSF = 0;
-        $itemCF = 0;
-        $itemSF = 0;
+		if (empty($nilai)) {
+			echo '<div class="p-4 text-center text-muted">Belum ada penilaian untuk periode ini.</div>';
+			return;
+		}
 
-        foreach ($nilai as $row) {
-            $nilaiAktual = (float) $row->nilai;
-            $bobotSub = (float) ($row->bobot_sub ?? 0);
+		// Hitung NCF, NSF, dan skor akhir
+		$rows = [];
+		$totalCF = $totalSF = 0;
+		$itemCF = 0;
+		$itemSF = 0;
 
-            // Hitung GAP
-            $gap = $this->profilematching->hitungGap(
-                $row->id_sub_kriteria,
-                $nilaiAktual
-            );
+		foreach ($nilai as $row) {
+			$nilaiAktual = (float) $row->nilai;
+			$bobotSub = (float) ($row->bobot_sub ?? 0);
 
-            $jenis = strtolower(trim($row->jenis_kriteria ?? ''));
+			// Hitung GAP
+			$gap = $this->profilematching->hitungGap(
+				$row->id_sub_kriteria,
+				$nilaiAktual
+			);
 
-            // Akumulasi Core Factor & Secondary Factor
-            if ($jenis === 'core_factor') {
-                $totalCF += $gap['gap'];
-                $itemCF++;
-            } else {
-                $totalSF += $gap['gap'];
-                $itemSF++;
-            }
+			$jenis = strtolower(trim($row->jenis_kriteria ?? ''));
 
-            // Data detail tabel
-            $rows[] = [
-                'kode_kriteria' => $row->kode_kriteria ?? '-',
-                'nama_kriteria' => $row->nama_kriteria ?? '-',
-                'nama_sub'      => $row->nama_sub_kriteria ?? '-',
-                'nilai_asli'    => $nilaiAktual,
-                'nilai_gap'     => $gap['gap'],
-                'bobot_sub'     => $bobotSub,
-                'jenis'         => $jenis,
-            ];
-        }
+			// Akumulasi Core Factor & Secondary Factor
+			if ($jenis === 'core_factor') {
+				$totalCF += $gap['gap'];
+				$itemCF++;
+			} else {
+				$totalSF += $gap['gap'];
+				$itemSF++;
+			}
 
-        // Hitung NCF, NSF, dan skor akhir
-        $ncf = $itemCF > 0 ? ($totalCF / $itemCF) : 0;
-        $nsf = $itemSF > 0 ? ($totalSF / $itemSF) : 0;
-        $skorAkhir = ($ncf * 0.9) + ($nsf * 0.1);
+			// Data detail tabel
+			$rows[] = [
+				'kode_kriteria' => $row->kode_kriteria ?? '-',
+				'nama_kriteria' => $row->nama_kriteria ?? '-',
+				'nama_sub'      => $row->nama_sub_kriteria ?? '-',
+				'nilai_asli'    => $nilaiAktual,
+				'nilai_gap'     => $gap['gap'],
+				'bobot_sub'     => $bobotSub,
+				'jenis'         => $jenis,
+			];
+		}
 
-        // Ambil data CS & tim
-        $csInfo = $this->CustomerServiceModel->getByIdWithDetails($idCs);
+		// Hitung NCF, NSF, dan skor akhir
+		$ncf = $itemCF > 0 ? ($totalCF / $itemCF) : 0;
+		$nsf = $itemSF > 0 ? ($totalSF / $itemSF) : 0;
+		$skorAkhir = ($ncf * 0.9) + ($nsf * 0.1);
 
-        // Validasi: CS harus dari tim leader
-        if ($csInfo->id_tim != $team->id_tim) {
-            echo '<div class="p-4 text-center text-danger">CS tidak termasuk dalam tim Anda.</div>';
-            return;
-        }
+		// Ambil data CS & tim
+		$csInfo = $this->CustomerServiceModel->getByIdWithDetails($idCs);
 
-        $namaLeader = $team->nama_leader ?? null;
+		// Validasi: CS harus dari tim leader
+		if ($csInfo->id_tim != $team->id_tim) {
+			echo '<div class="p-4 text-center text-danger">CS tidak termasuk dalam tim Anda.</div>';
+			return;
+		}
 
-        // Ambil info ranking dari database (untuk approval info)
-        $rankingInfo = $this->db->select('ranking.*,
+		$namaLeader = $team->nama_leader ?? null;
+
+		// Ambil info ranking dari database (untuk approval info)
+		$rankingInfo = $this->db->select('ranking.*,
                 leader.nama_pengguna as approved_by_leader_name,
                 supervisor.nama_pengguna as approved_by_supervisor_name')
-            ->from('ranking')
-            ->join('pengguna leader', 'ranking.approved_by_leader = leader.id_user', 'left')
-            ->join('pengguna supervisor', 'ranking.approved_by_supervisor = supervisor.id_user', 'left')
-            ->where('ranking.id_cs', $idCs)
-            ->where('ranking.periode', $periode)
-            ->get()
-            ->row();
+			->from('ranking')
+			->join('pengguna leader', 'ranking.approved_by_leader = leader.id_user', 'left')
+			->join('pengguna supervisor', 'ranking.approved_by_supervisor = supervisor.id_user', 'left')
+			->where('ranking.id_cs', $idCs)
+			->where('ranking.periode', $periode)
+			->get()
+			->row();
 
-        // Render view detail (reuse admin view)
-        $this->load->view('admin/ranking/detail', [
-            'rows'      => $rows,
-            'ncf'       => round($ncf, 4),
-            'nsf'       => round($nsf, 4),
-            'skor'      => round($skorAkhir, 6),
-            'total_cf'  => $totalCF,
-            'item_cf'   => $itemCF,
-            'total_sf'  => $totalSF,
-            'item_sf'   => $itemSF,
-            'periode'   => $periode,
-            'id_cs'     => $idCs,
-            'cs' => (object)[
-                'nama_cs'     => $csInfo->nama_cs ?? '-',
-                'nik'         => $csInfo->nik ?? '-',
-                'nama_tim'    => $csInfo->nama_tim ?? null,
-                'nama_produk' => $csInfo->nama_produk ?? null,
-                'nama_leader' => $namaLeader,
-            ],
-            'ranking_info' => $rankingInfo
-        ]);
-    }
+		// Render view detail (reuse admin view)
+		$this->load->view('admin/ranking/detail', [
+			'rows'      => $rows,
+			'ncf'       => round($ncf, 4),
+			'nsf'       => round($nsf, 4),
+			'skor'      => round($skorAkhir, 6),
+			'total_cf'  => $totalCF,
+			'item_cf'   => $itemCF,
+			'total_sf'  => $totalSF,
+			'item_sf'   => $itemSF,
+			'periode'   => $periode,
+			'id_cs'     => $idCs,
+			'cs' => (object)[
+				'nama_cs'     => $csInfo->nama_cs ?? '-',
+				'nik'         => $csInfo->nik ?? '-',
+				'nama_tim'    => $csInfo->nama_tim ?? null,
+				'nama_produk' => $csInfo->nama_produk ?? null,
+				'nama_leader' => $namaLeader,
+			],
+			'ranking_info' => $rankingInfo
+		]);
+	}
 }

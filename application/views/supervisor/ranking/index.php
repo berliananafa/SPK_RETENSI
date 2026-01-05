@@ -71,23 +71,23 @@
 				</div>
 
 				<!-- Rankings Table -->
-				<?php if (!empty($rankings)): ?>
-					<div class="table-responsive">
-						<table id="dataTable-1" class="table table-hover table-striped datatables">
-							<thead>
-								<tr>
-									<th width="5%">Rank</th>
-									<th>NIK</th>
-									<th>Nama CS</th>
-									<th>Produk</th>
-									<th>Tim</th>
-									<th>Kanal</th>
-									<th>Nilai Akhir</th>
-									<th>Status</th>
-									<th width="12%" class="text-center">Aksi</th>
-								</tr>
-							</thead>
-							<tbody>
+				<div class="table-responsive">
+					<table id="dataTable-1" class="table table-hover table-striped datatables">
+						<thead>
+							<tr>
+								<th width="5%">Rank</th>
+								<th>NIK</th>
+								<th>Nama CS</th>
+								<th>Produk</th>
+								<th>Tim</th>
+								<th>Kanal</th>
+								<th>Nilai Akhir</th>
+								<th>Status</th>
+								<th width="12%" class="text-center">Aksi</th>
+							</tr>
+						</thead>
+						<tbody>
+							<?php if (!empty($rankings)): ?>
 								<?php foreach ($rankings as $index => $rank): ?>
 									<tr>
 										<td>
@@ -164,14 +164,17 @@
 										</td>
 									</tr>
 								<?php endforeach; ?>
-							</tbody>
-						</table>
-					</div>
-				<?php else: ?>
-					<div class="alert alert-info">
-						<i class="fe fe-alert-circle"></i> Belum ada data ranking untuk periode ini.
-					</div>
-				<?php endif; ?>
+							<?php else: ?>
+								<tr>
+									<td colspan="8" class="text-center py-4">
+										<i class="fe fe-inbox text-muted" style="font-size: 48px;"></i>
+										<p class="text-muted mt-2 mb-0">Belum ada data ranking untuk periode ini.</p>
+									</td>
+								</tr>
+							<?php endif; ?>
+						</tbody>
+					</table>
+				</div>
 			</div>
 		</div>
 	</div>
@@ -307,7 +310,9 @@ ob_start();
 					$.ajax({
 						url: urls.bulkApprove,
 						method: 'POST',
-						data: { periode: periode },
+						data: {
+							periode: periode
+						},
 						dataType: 'json',
 						headers: {
 							'X-Requested-With': 'XMLHttpRequest'
@@ -399,7 +404,9 @@ ob_start();
 					$.ajax({
 						url: urls.reject + '/' + currentRankingId,
 						method: 'POST',
-						data: { note: result.value },
+						data: {
+							note: result.value
+						},
 						dataType: 'json',
 						headers: {
 							'X-Requested-With': 'XMLHttpRequest'

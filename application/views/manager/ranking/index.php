@@ -58,25 +58,25 @@
 				</div>
 
 				<!-- Rankings Table -->
-				<?php if (!empty($rankings)): ?>
-					<div class="table-responsive">
-						<table id="dataTable-1" class="table table-hover table-striped datatables">
-							<thead>
-								<tr>
-									<th width="5%">Rank</th>
-									<th>NIK</th>
-									<th>Nama CS</th>
-									<th>Produk</th>
-									<th>Tim</th>
-									<th>NCF (90%)</th>
-									<th>NSF (10%)</th>
-									<th>Skor Akhir</th>
-									<th width="10%" class="text-center">Approval Leader</th>
-									<th width="10%" class="text-center">Approval SPV</th>
-									<th width="8%" class="text-center">Aksi</th>
-								</tr>
-							</thead>
-							<tbody>
+				<div class="table-responsive">
+					<table id="dataTable-1" class="table table-hover table-striped datatables">
+						<thead>
+							<tr>
+								<th width="5%">Rank</th>
+								<th>NIK</th>
+								<th>Nama CS</th>
+								<th>Produk</th>
+								<th>Tim</th>
+								<th>NCF (90%)</th>
+								<th>NSF (10%)</th>
+								<th>Skor Akhir</th>
+								<th width="10%" class="text-center">Approval Leader</th>
+								<th width="10%" class="text-center">Approval SPV</th>
+								<th width="8%" class="text-center">Aksi</th>
+							</tr>
+						</thead>
+						<tbody>
+							<?php if (!empty($rankings)): ?>
 								<?php foreach ($rankings as $index => $rank): ?>
 									<tr>
 										<td>
@@ -124,12 +124,24 @@
 											<?php
 											$rankStatus = $rank->status ?? 'draft';
 											if ($rankStatus === 'rejected_leader'): ?>
-												<span class="badge badge-danger" title="Ditolak oleh <?= htmlspecialchars($rank->approved_by_leader_name ?? '') ?>">
+												<span class="badge badge-danger"
+													data-toggle="tooltip"
+													title="Ditolak oleh <?= htmlspecialchars($rank->approved_by_leader_name ?? '') ?>">
 													<i class="fe fe-x"></i> Ditolak
 												</span>
 												<br><small class="text-muted"><?= !empty($rank->approved_at_leader) ? date('d/m/Y', strtotime($rank->approved_at_leader)) : '' ?></small>
+												<?php if (!empty($rank->leader_note)): ?>
+													<br>
+													<button class="btn btn-xs btn-outline-secondary mt-1"
+														data-toggle="tooltip"
+														title="<?= htmlspecialchars($rank->leader_note) ?>">
+														<i class="fe fe-info"></i>
+													</button>
+												<?php endif; ?>
 											<?php elseif (in_array($rankStatus, ['pending_supervisor', 'rejected_supervisor', 'published'])): ?>
-												<span class="badge badge-success" title="Disetujui oleh <?= htmlspecialchars($rank->approved_by_leader_name ?? '') ?>">
+												<span class="badge badge-success"
+													data-toggle="tooltip"
+													title="Disetujui oleh <?= htmlspecialchars($rank->approved_by_leader_name ?? '') ?>">
 													<i class="fe fe-check"></i> Approved
 												</span>
 												<br><small class="text-muted"><?= !empty($rank->approved_at_leader) ? date('d/m/Y', strtotime($rank->approved_at_leader)) : '' ?></small>
@@ -142,12 +154,24 @@
 										<td class="text-center">
 											<?php
 											if ($rankStatus === 'rejected_supervisor'): ?>
-												<span class="badge badge-danger" title="Ditolak oleh <?= htmlspecialchars($rank->approved_by_supervisor_name ?? '') ?>">
+												<span class="badge badge-danger"
+													data-toggle="tooltip"
+													title="Ditolak oleh <?= htmlspecialchars($rank->approved_by_supervisor_name ?? '') ?>">
 													<i class="fe fe-x"></i> Ditolak
 												</span>
 												<br><small class="text-muted"><?= !empty($rank->approved_at_supervisor) ? date('d/m/Y', strtotime($rank->approved_at_supervisor)) : '' ?></small>
+												<?php if (!empty($rank->supervisor_note)): ?>
+													<br>
+													<button class="btn btn-xs btn-outline-secondary mt-1"
+														data-toggle="tooltip"
+														title="<?= htmlspecialchars($rank->supervisor_note) ?>">
+														<i class="fe fe-info"></i>
+													</button>
+												<?php endif; ?>
 											<?php elseif ($rankStatus === 'published'): ?>
-												<span class="badge badge-success" title="Disetujui oleh <?= htmlspecialchars($rank->approved_by_supervisor_name ?? '') ?>">
+												<span class="badge badge-success"
+													data-toggle="tooltip"
+													title="Disetujui oleh <?= htmlspecialchars($rank->approved_by_supervisor_name ?? '') ?>">
 													<i class="fe fe-check"></i> Approved
 												</span>
 												<br><small class="text-muted"><?= !empty($rank->approved_at_supervisor) ? date('d/m/Y', strtotime($rank->approved_at_supervisor)) : '' ?></small>
@@ -158,20 +182,25 @@
 											<?php endif; ?>
 										</td>
 										<td class="text-center">
-											<button class="btn btn-sm btn-info btn-detail" data-id="<?= $rank->id_cs ?>" title="Detail">
+											<button class="btn btn-sm btn-info btn-detail"
+												data-id="<?= $rank->id_cs ?>"
+												title="Detail">
 												<i class="fe fe-eye"></i>
 											</button>
 										</td>
 									</tr>
 								<?php endforeach; ?>
-							</tbody>
-						</table>
-					</div>
-				<?php else: ?>
-					<div class="alert alert-info">
-						<i class="fe fe-alert-circle"></i> Belum ada data ranking untuk periode ini.
-					</div>
-				<?php endif; ?>
+							<?php else: ?>
+								<tr>
+									<td colspan="11" class="text-center py-4">
+										<i class="fe fe-inbox text-muted" style="font-size: 48px;"></i>
+										<p class="text-muted mt-2 mb-0">Belum ada data ranking untuk periode ini.</p>
+									</td>
+								</tr>
+							<?php endif; ?>
+						</tbody>
+					</table>
+				</div>
 			</div>
 		</div>
 	</div>
