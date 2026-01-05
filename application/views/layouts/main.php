@@ -45,15 +45,14 @@
 			overflow-x: hidden !important;
 			max-width: 100%;
 		}
-
 	</style>
 
 	<!-- Optional CSS -->
 	<?php if (!empty($include_datatables)): ?>
-	<link rel="stylesheet" href="<?= base_url('assets/css/dataTables.bootstrap4.css') ?>">
+		<link rel="stylesheet" href="<?= base_url('assets/css/dataTables.bootstrap4.css') ?>">
 	<?php endif; ?>
 	<?php if (!empty($include_charts)): ?>
-	<link rel="stylesheet" href="<?= base_url('assets/css/apexcharts.css') ?>">
+		<link rel="stylesheet" href="<?= base_url('assets/css/apexcharts.css') ?>">
 	<?php endif; ?>
 	<?= $additional_css ?? '' ?>
 </head>
@@ -77,33 +76,35 @@
 								<h2 class="mb-0 page-title"><?= $page_title ?? 'Dashboard' ?></h2>
 							</div>
 							<?php if (!empty($breadcrumb)): ?>
-							<div class="col-auto">
-								<nav aria-label="breadcrumb">
-									<ol class="p-0 m-0 bg-transparent breadcrumb">
-										<?php foreach ($breadcrumb as $item): ?>
-										<?php if (!empty($item['url'])): ?>
-										<li class="breadcrumb-item"><a
-												href="<?= $item['url'] ?>"><?= $item['title'] ?></a></li>
-										<?php else: ?>
-										<li class="breadcrumb-item active" aria-current="page"><?= $item['title'] ?>
-										</li>
-										<?php endif; ?>
-										<?php endforeach; ?>
-									</ol>
-								</nav>
-							</div>
+								<div class="col-auto">
+									<nav aria-label="breadcrumb">
+										<ol class="p-0 m-0 bg-transparent breadcrumb">
+											<?php foreach ($breadcrumb as $item): ?>
+												<?php if (!empty($item['url'])): ?>
+													<li class="breadcrumb-item"><a
+															href="<?= $item['url'] ?>"><?= $item['title'] ?></a></li>
+												<?php else: ?>
+													<li class="breadcrumb-item active" aria-current="page"><?= $item['title'] ?>
+													</li>
+												<?php endif; ?>
+											<?php endforeach; ?>
+										</ol>
+									</nav>
+								</div>
 							<?php endif; ?>
 						</div>
 
 						<!-- Flash Messages -->
 						<?php foreach (['success', 'error', 'warning', 'info'] as $type): ?>
-						<?php if ($msg = $this->session->flashdata($type)): ?>
-						<div
-							class="alert alert-<?= $type === 'error' ? 'danger' : $type ?> alert-dismissible fade show">
-							<button type="button" class="close" data-dismiss="alert">&times;</button>
-							<?= $msg ?>
-						</div>
-						<?php endif; ?>
+							<?php if ($msg = $this->session->flashdata($type)): ?>
+								<div
+									class="alert alert-<?= $type === 'error' ? 'danger' : $type ?> alert-dismissible fade show">
+									<button type="button" class="close" data-dismiss="alert">&times;</button>
+									<span style="font-weight:bold; color:#000000ff;">
+										<?= $msg ?>
+									</span>
+								</div>
+							<?php endif; ?>
 						<?php endforeach; ?>
 
 						<!-- Page Content -->
@@ -128,15 +129,15 @@
 
 	<!-- Optional JS -->
 	<?php if (!empty($include_datatables)): ?>
-	<script src="<?= base_url('assets/js/jquery.dataTables.min.js') ?>"></script>
-	<script src="<?= base_url('assets/js/dataTables.bootstrap4.min.js') ?>"></script>
+		<script src="<?= base_url('assets/js/jquery.dataTables.min.js') ?>"></script>
+		<script src="<?= base_url('assets/js/dataTables.bootstrap4.min.js') ?>"></script>
 	<?php endif; ?>
 	<?php if (!empty($include_charts)): ?>
-	<script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
-	<script src="<?= base_url('assets/js/apexcharts.min.js') ?>"></script>
+		<script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+		<script src="<?= base_url('assets/js/apexcharts.min.js') ?>"></script>
 	<?php endif; ?>
 	<?php if (!empty($include_sweetalert)): ?>
-	<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+		<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 	<?php endif; ?>
 
 	<!-- Page Specific Scripts -->
@@ -144,43 +145,43 @@
 
 	<!-- Common JS -->
 	<?php if (!empty($include_datatables)): ?>
-	<script>
-		$(document).ready(function () {
-			// Initialize DataTable with default config
-			if ($('#dataTable-1').length && !$.fn.DataTable.isDataTable('#dataTable-1')) {
-				window.dataTable = $('#dataTable-1').DataTable({
-					autoWidth: true,
-					pageLength: 10,
-					ordering: true,
-					searching: true,
-					lengthMenu: [
-						[10, 20, 30, 50, -1],
-						[10, 20, 30, 50, "Semua"]
-					],
-					language: {
-						search: "Cari:",
-						lengthMenu: "Tampilkan _MENU_ data per halaman",
-						info: "Menampilkan _START_ sampai _END_ dari _TOTAL_ data",
-						infoEmpty: "Menampilkan 0 sampai 0 dari 0 data",
-						infoFiltered: "(difilter dari _MAX_ total data)",
-						paginate: {
-							first: "Pertama",
-							last: "Terakhir",
-							next: "Selanjutnya",
-							previous: "Sebelumnya"
-						},
-						emptyTable: "Tidak ada data yang tersedia",
-						zeroRecords: "Tidak ada data yang cocok",
-						processing: "Memproses..."
-					}
-				});
-			}
-		});
-	</script>
+		<script>
+			$(document).ready(function() {
+				// Initialize DataTable with default config
+				if ($('#dataTable-1').length && !$.fn.DataTable.isDataTable('#dataTable-1')) {
+					window.dataTable = $('#dataTable-1').DataTable({
+						autoWidth: true,
+						pageLength: 10,
+						ordering: true,
+						searching: true,
+						lengthMenu: [
+							[10, 20, 30, 50, -1],
+							[10, 20, 30, 50, "Semua"]
+						],
+						language: {
+							search: "Cari:",
+							lengthMenu: "Tampilkan _MENU_ data per halaman",
+							info: "Menampilkan _START_ sampai _END_ dari _TOTAL_ data",
+							infoEmpty: "Menampilkan 0 sampai 0 dari 0 data",
+							infoFiltered: "(difilter dari _MAX_ total data)",
+							paginate: {
+								first: "Pertama",
+								last: "Terakhir",
+								next: "Selanjutnya",
+								previous: "Sebelumnya"
+							},
+							emptyTable: "Tidak ada data yang tersedia",
+							zeroRecords: "Tidak ada data yang cocok",
+							processing: "Memproses..."
+						}
+					});
+				}
+			});
+		</script>
 	<?php endif; ?>
 
 	<script>
-		$(function () {
+		$(function() {
 			// Initialize Simplebar for sidebar
 			if (typeof SimpleBar !== 'undefined') {
 				var sidebarElement = document.getElementById('leftSidebar');
@@ -190,13 +191,13 @@
 			}
 
 			// Sidebar toggle for mobile
-			$('.collapseSidebar').on('click', function () {
+			$('.collapseSidebar').on('click', function() {
 				$('#leftSidebar').toggleClass('show');
 				$('body').toggleClass('sidebar-open');
 			});
 
 			// Close sidebar when clicking outside on mobile
-			$(document).on('click', function (e) {
+			$(document).on('click', function(e) {
 				if ($(window).width() < 992) {
 					if (!$(e.target).closest('.sidebar-left, .collapseSidebar').length) {
 						$('#leftSidebar').removeClass('show');
@@ -209,7 +210,7 @@
 			setTimeout(() => $('.alert').fadeOut('slow'), 4000);
 
 			// Delete confirmation
-			$(document).on('click', '.btn-delete', function (e) {
+			$(document).on('click', '.btn-delete', function(e) {
 				e.preventDefault();
 				const url = $(this).data('url') || $(this).attr('href');
 				const title = $(this).data('title') || 'Hapus Data?';
@@ -235,7 +236,41 @@
 				}
 			});
 		});
+	</script>
 
+	<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+	<script>
+		// Logout confirmation with SweetAlert
+		document.addEventListener('DOMContentLoaded', function() {
+			const logoutBtn = document.getElementById('logoutBtn');
+			if (logoutBtn) {
+				logoutBtn.addEventListener('click', function(e) {
+					e.preventDefault();
+					const url = this.href;
+
+					if (typeof Swal !== 'undefined') {
+						Swal.fire({
+							title: 'Keluar dari Sistem?',
+							text: 'Anda akan keluar dari sesi login saat ini',
+							icon: 'question',
+							showCancelButton: true,
+							confirmButtonColor: '#1b68ff',
+							cancelButtonColor: '#6c757d',
+							confirmButtonText: 'Ya, Keluar',
+							cancelButtonText: 'Batal'
+						}).then((result) => {
+							if (result.isConfirmed) {
+								window.location.href = url;
+							}
+						});
+					} else {
+						if (confirm('Yakin ingin keluar?')) {
+							window.location.href = url;
+						}
+					}
+				});
+			}
+		});
 	</script>
 </body>
 
