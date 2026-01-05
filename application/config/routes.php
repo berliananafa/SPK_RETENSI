@@ -189,6 +189,9 @@ $route['junior-manager/kriteria'] = 'manager/KriteriaController/index';
 $route['junior-manager/kriteria/detail/(:num)'] = 'manager/KriteriaController/detail/$1';
 $route['junior-manager/kriteria/approve/(:num)'] = 'manager/KriteriaController/approve/$1';
 $route['junior-manager/kriteria/reject/(:num)'] = 'manager/KriteriaController/reject/$1';
+// Sub Kriteria Approval (dalam konteks Kriteria)
+$route['junior-manager/kriteria/approve_sub/(:num)'] = 'manager/KriteriaController/approve_sub/$1';
+$route['junior-manager/kriteria/reject_sub/(:num)'] = 'manager/KriteriaController/reject_sub/$1';
 // Team Overview
 $route['junior-manager/team-overview'] = 'manager/TeamOverviewController/index';
 $route['junior-manager/team-overview/detail/(:num)'] = 'manager/TeamOverviewController/detail/$1';
