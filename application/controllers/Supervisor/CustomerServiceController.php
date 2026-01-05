@@ -38,14 +38,7 @@ class CustomerServiceController extends Supervisor_Controller
 		if (!$id_cs) {
 			show_404();
 		}
-
-		set_page_title('Detail Customer Service - ' . $cs->nama_cs);
-		set_breadcrumb([
-			['title' => 'Dashboard', 'url' => base_url('supervisor/dashboard')],
-			['title' => 'Customer Service', 'url' => base_url('supervisor/customer-service')],
-			['title' => $cs->nama_cs]
-		]);
-
+		
 		enable_datatables();
 
 		$supervisorId = $this->session->userdata('user_id');
@@ -56,6 +49,13 @@ class CustomerServiceController extends Supervisor_Controller
 			$this->session->set_flashdata('error', 'Data Customer Service tidak ditemukan atau Anda tidak memiliki akses.');
 			redirect('supervisor/customer-service');
 		}
+
+		set_page_title('Detail Customer Service - ' . $cs->nama_cs);
+		set_breadcrumb([
+			['title' => 'Dashboard', 'url' => base_url('supervisor/dashboard')],
+			['title' => 'Customer Service', 'url' => base_url('supervisor/customer-service')],
+			['title' => $cs->nama_cs]
+		]);
 
 		$data['cs'] = $cs;
 		$data['evaluations'] = $this->NilaiModel->getByCustomerService($id_cs);
